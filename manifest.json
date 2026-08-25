@@ -1,17 +1,1 @@
-{
-  "name": "Download music PRÓ",
-  "short_name": "Music PRÓ",
-  "description": "Baixe músicas do YouTube em alta fidelidade",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#0a0e17",
-  "theme_color": "#0a0e17",
-  "icons": [
-    {
-      "src": "icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
-}
+{"name": "Download Music PRÓ","short_name": "Download Music PRÓ","description": "Baixe e ouça músicas do YouTube sem anúncios e em alta fidelidade","start_url": "./index.html","display": "standalone","orientation": "portrait","background_color": "#080c14","theme_color": "#080c14","icons": [{"src": "icon.png","sizes": "512x512","type": "image/png","purpose": "any maskable"}]}
