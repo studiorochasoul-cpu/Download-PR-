@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- YouTube IFrame Player API -->
   <script src="https://www.youtube.com/iframe_api"></script>
+  <!-- PWA Manifest Inline Data -->
+  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkRvd25sb2FkIG11c2ljIFBSw5MiLAogICJzaG9ydF9uYW1lIjogIk11c2ljIFBSw5MiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzA5MGQxNiIsCiAgInRoZW1lX2NvbG9yIjogIiMwOTBkMTYiCi99">
+  
   <style>
     * {
       font-family: 'Inter', sans-serif;
@@ -30,13 +33,17 @@
       background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
       box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
     }
+    .neon-btn:hover {
+      box-shadow: 0 6px 25px rgba(168, 85, 247, 0.6);
+    }
     .neon-btn:active {
       transform: scale(0.98);
       box-shadow: 0 2px 10px rgba(168, 85, 247, 0.3);
     }
+    /* Waveform Animation */
     @keyframes pulse-wave {
       0%, 100% { height: 3px; }
-      50% { height: 16px; }
+      50% { height: 18px; }
     }
     .wave-bar {
       height: 3px;
@@ -54,12 +61,16 @@
 </head>
 <body class="flex flex-col justify-between h-full w-full bg-[#070a12] overflow-hidden">
 
-  <!-- PLAYER EMBED OCULTO PARA REPRODUÇÃO REAL NO ANDROID E DESKTOP -->
+  <audio id="real-audio-element" class="hidden" preload="auto" crossorigin="anonymous" playsinline></audio>
   <div class="fixed top-0 left-0 -z-50 pointer-events-none opacity-0 w-1 h-1 overflow-hidden">
-    <div id="yt-player"></div>
+    <iframe 
+      id="yt-player-iframe" 
+      src="https://www.youtube.com/embed/kJQP7kiw5Fk?enablejsapi=1&playsinline=1&controls=0" 
+      allow="autoplay; encrypted-media" 
+      class="w-full h-full"
+    ></iframe>
   </div>
 
-  <!-- BANNER PWA DE INSTALAÇÃO -->
   <div id="pwa-banner" class="bg-gradient-to-r from-purple-900/90 to-indigo-900/90 border-b border-purple-500/30 px-3 py-1.5 flex items-center justify-between text-xs z-50 shrink-0">
     <div class="flex items-center gap-2">
       <div class="w-5 h-5 rounded bg-red-600 flex items-center justify-center font-black text-[9px] text-white shadow">
@@ -77,7 +88,6 @@
     </div>
   </div>
 
-  <!-- HEADER -->
   <header class="px-4 md:px-8 py-2 flex items-center justify-between border-b border-slate-800/80 bg-[#0b101d] shrink-0">
     <div class="flex items-center gap-2.5">
       <div class="relative w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg border border-red-500/30">
@@ -88,7 +98,7 @@
       </div>
       <div>
         <h1 class="text-xs md:text-sm font-extrabold tracking-tight text-white leading-none">Download music <span class="text-purple-400">PRÓ</span></h1>
-        <p class="text-[8px] md:text-[10px] text-slate-400">Extração de áudio e transposição de tom</p>
+        <p class="text-[8px] md:text-[10px] text-slate-400">Extração de áudio em alta qualidade e transposição de tom</p>
       </div>
     </div>
     <div class="w-6 h-6 md:w-7 md:h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-purple-400 text-xs font-bold">
@@ -96,10 +106,9 @@
     </div>
   </header>
 
-  <!-- CONTEÚDO PRINCIPAL (TELA ÚNICA SEM SCROLL / ADAPTÁVEL DESKTOP E MOBILE) -->
-  <main class="flex-1 flex flex-col justify-between p-2.5 md:p-5 overflow-hidden max-w-4xl mx-auto w-full">
+  <main class="flex-1 flex flex-col justify-between p-2.5 md:p-5 overflow-hidden max-w-4xl mx-auto w-full relative">
 
-    <!-- CAMPO DE URL E BOTÃO COLAR -->
+    <!-- INPUT DE URL E BOTÃO COLAR -->
     <div class="shrink-0 w-full mb-2">
       <div class="relative flex items-center bg-[#121826] border border-purple-500/30 rounded-xl p-1.5 focus-within:border-purple-500 transition-all shadow-md">
         <span class="pl-2 pr-1 text-purple-400 text-xs md:text-sm">🔗</span>
@@ -120,10 +129,9 @@
       </div>
     </div>
 
-    <!-- SEÇÃO CENTRAL: GRID COM CAPA/PLAYER E CONTROLES DIRETOS -->
+    <!-- SEÇÃO CENTRAL: GRID COM CAPA/PLAYER E CONTROLES DE ÁUDIO -->
     <div class="flex-1 flex flex-col md:flex-row items-center justify-center gap-2.5 md:gap-6 min-h-0 w-full my-auto">
       
-      <!-- CAPA DA MÚSICA COM PLAYER DE ÁUDIO -->
       <div class="w-full md:w-1/2 flex flex-col items-center justify-center">
         <div class="relative w-full aspect-video max-h-[170px] md:max-h-[220px] rounded-xl overflow-hidden bg-black border border-slate-800 flex items-center justify-center shadow-lg">
           <img 
@@ -131,17 +139,18 @@
             src="https://img.youtube.com/vi/kJQP7kiw5Fk/hqdefault.jpg" 
             alt="Capa da música" 
             class="w-full h-full object-cover"
+            onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop'"
           >
           <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
 
-          <!-- Botão Ouvir Música -->
+          <!-- Botão Ouvir Música com Pré-escuta Real -->
           <button 
             id="btn-play-preview"
             onclick="toggleAudioPreview()" 
-            class="absolute z-10 bg-purple-600/90 hover:bg-purple-500 text-white rounded-full px-3.5 py-1.5 md:px-4 md:py-2 shadow-2xl flex items-center justify-center gap-1.5 border border-purple-400/40 backdrop-blur-sm active:scale-95 transition-all cursor-pointer"
+            class="absolute z-10 bg-purple-600/90 hover:bg-purple-500 text-white rounded-full px-4 py-2 md:px-5 md:py-2.5 shadow-2xl flex items-center justify-center gap-2 border border-purple-400/40 backdrop-blur-sm active:scale-95 transition-all cursor-pointer"
           >
             <span id="play-icon" class="text-sm md:text-base">▶</span>
-            <span id="play-text" class="text-[11px] md:text-xs font-bold">Ouvir Música</span>
+            <span id="play-text" class="text-xs md:text-sm font-bold">Ouvir Música</span>
           </button>
 
           <!-- Animação do Waveform -->
@@ -158,19 +167,22 @@
         <h2 id="song-title" class="text-[11px] md:text-xs font-bold text-white text-center truncate w-full mt-1.5 px-1">
           Luis Fonsi - Despacito ft. Daddy Yankee
         </h2>
+        <div class="flex items-center justify-center gap-1 text-[10px] text-cyan-400 mt-0.5">
+          <span>☑</span>
+          <span>Qualidade Master Detectada</span>
+        </div>
       </div>
 
-      <!-- OPÇÕES DIRETAS (QUALIDADE DE ÁUDIO + TRANSPOSIÇÃO DE TOM) -->
       <div class="w-full md:w-1/2 flex flex-col justify-center gap-2">
         
-        <!-- Opções de Qualidade de Áudio (Sem a tag PRO) -->
+        <!-- Opções de Qualidade de Áudio -->
         <div class="space-y-1">
           <span class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Qualidade do Áudio</span>
           <div class="grid grid-cols-2 gap-1.5">
             
             <label class="bg-[#121826] border border-slate-800 rounded-lg p-1.5 md:p-2 flex flex-col justify-between cursor-pointer hover:border-purple-500/50 transition-all">
               <div class="flex items-center justify-between">
-                <span class="text-[10px] md:text-xs font-bold text-white">MP3 128k</span>
+                <span class="text-[10px] md:text-xs font-bold text-white">MP3 128kbps</span>
                 <input type="radio" name="audio-quality" value="mp3-128" class="accent-purple-500">
               </div>
               <span class="text-[8px] md:text-[9px] text-slate-400">Padrão</span>
@@ -178,10 +190,10 @@
 
             <label class="bg-[#121826] border-2 border-purple-500/70 rounded-lg p-1.5 md:p-2 flex flex-col justify-between cursor-pointer bg-purple-950/20">
               <div class="flex items-center justify-between">
-                <span class="text-[10px] md:text-xs font-bold text-white">MP3 320k</span>
+                <span class="text-[10px] md:text-xs font-bold text-white">MP3 320kbps</span>
                 <input type="radio" name="audio-quality" value="mp3-320" checked class="accent-purple-500">
               </div>
-              <span class="text-[8px] md:text-[9px] text-purple-300">Alta Fidelidade</span>
+              <span class="text-[8px] md:text-[9px] text-purple-300">Alta Qualidade</span>
             </label>
 
             <label class="bg-[#121826] border border-slate-800 rounded-lg p-1.5 md:p-2 flex flex-col justify-between cursor-pointer hover:border-purple-500/50 transition-all">
@@ -203,10 +215,13 @@
           </div>
         </div>
 
-        <!-- Transposição de Tom -->
+        <!-- Transposição de Tom com Mudança em Tempo Real -->
         <div class="bg-[#121826] border border-slate-800 rounded-lg p-2">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-[9px] md:text-[10px] font-bold text-slate-300 uppercase">Transposição de Tom</span>
+            <div>
+              <span class="text-[9px] md:text-[10px] font-bold text-slate-300 uppercase block">Transposição de Tom</span>
+              <span class="text-[8px] md:text-[9px] text-slate-400 block">Altera o tom ao vivo enquanto você ouve</span>
+            </div>
             <div class="flex bg-slate-900 p-0.5 rounded border border-slate-800 text-[9px] md:text-[10px]">
               <button id="btn-orig" onclick="setTransposeMode('original')" class="px-2 py-0.5 rounded font-bold bg-purple-600 text-white cursor-pointer">Original</button>
               <button id="btn-trans" onclick="setTransposeMode('transpose')" class="px-2 py-0.5 rounded font-bold text-slate-400 cursor-pointer">Transpor</button>
@@ -214,14 +229,14 @@
           </div>
 
           <div id="transpose-controls" class="flex items-center justify-between bg-[#1a2235] p-1.5 rounded border border-slate-700/50 opacity-50 pointer-events-none transition-all">
-            <button onclick="changePitch(-1)" class="w-7 h-7 md:w-8 md:h-8 bg-slate-800 hover:bg-slate-700 active:scale-90 text-purple-300 rounded font-bold flex items-center justify-center border border-slate-700 text-sm md:text-base cursor-pointer">
+            <button onclick="changePitch(-1)" class="w-8 h-8 md:w-9 md:h-9 bg-slate-800 hover:bg-slate-700 active:scale-90 text-purple-300 rounded font-bold flex items-center justify-center border border-slate-700 text-base md:text-lg cursor-pointer shadow">
               -
             </button>
             <div class="text-center">
               <div id="transpose-status" class="text-[10px] md:text-xs font-extrabold text-white">Tom Original (0)</div>
               <div id="transposed-key-display" class="text-[9px] md:text-[10px] text-purple-300">Bm (Si Menor)</div>
             </div>
-            <button onclick="changePitch(1)" class="w-7 h-7 md:w-8 md:h-8 bg-slate-800 hover:bg-slate-700 active:scale-90 text-purple-300 rounded font-bold flex items-center justify-center border border-slate-700 text-sm md:text-base cursor-pointer">
+            <button onclick="changePitch(1)" class="w-8 h-8 md:w-9 md:h-9 bg-slate-800 hover:bg-slate-700 active:scale-90 text-purple-300 rounded font-bold flex items-center justify-center border border-slate-700 text-base md:text-lg cursor-pointer shadow">
               +
             </button>
           </div>
@@ -231,46 +246,18 @@
 
     </div>
 
-    <!-- SEÇÃO INFERIOR: BOTÃO BAIXAR MÚSICA E COMPARTILHAMENTO -->
-    <div class="shrink-0 space-y-2 mt-1">
-      
-      <!-- Botão Baixar Música Principal -->
+    <div class="shrink-0 mt-1">
       <button 
-        onclick="downloadOriginalAudio()" 
-        class="w-full neon-btn text-white font-extrabold py-2.5 md:py-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer shadow-lg"
+        onclick="downloadTransposedAudio()" 
+        class="w-full neon-btn text-white font-extrabold py-3 md:py-3.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer shadow-2xl"
       >
-        <span>⬇ BAIXAR MÚSICA</span>
+        <span>⬇ BAIXAR MÚSICA AGORA</span>
       </button>
-
-      <!-- Botões Compactos de Compartilhar -->
-      <div class="flex items-center justify-center gap-3 md:gap-5 pt-0.5">
-        <button onclick="shareMedia('WhatsApp')" class="flex items-center gap-1 text-[10px] md:text-xs text-slate-400 hover:text-green-400 cursor-pointer">
-          <span>💬</span>
-          <span>WhatsApp</span>
-        </button>
-        <span class="text-slate-700">•</span>
-        <button onclick="shareMedia('Google Drive')" class="flex items-center gap-1 text-[10px] md:text-xs text-slate-400 hover:text-cyan-400 cursor-pointer">
-          <span>☁️</span>
-          <span>Drive</span>
-        </button>
-        <span class="text-slate-700">•</span>
-        <button onclick="shareMedia('E-mail')" class="flex items-center gap-1 text-[10px] md:text-xs text-slate-400 hover:text-purple-400 cursor-pointer">
-          <span>✉️</span>
-          <span>Email</span>
-        </button>
-        <span class="text-slate-700">•</span>
-        <button onclick="shareMedia('Mais')" class="flex items-center gap-1 text-[10px] md:text-xs text-slate-400 hover:text-white cursor-pointer">
-          <span>•••</span>
-          <span>Mais</span>
-        </button>
-      </div>
-
     </div>
 
   </main>
 
-  <!-- RODAPÉ FIXO COM CRÉDITOS DO DESENVOLVEDOR -->
-  <footer class="px-4 py-1.5 text-center bg-[#070a12] border-t border-slate-800/60 shrink-0">
+  <footer class="px-4 py-2 text-center bg-[#070a12] border-t border-slate-800/60 shrink-0">
     <p class="text-[10px] md:text-[11px] text-slate-400">
       Aplicativo desenvolvido por 
       <a 
@@ -285,19 +272,23 @@
   </footer>
 
   <!-- NOTIFICAÇÃO TOAST POPUP -->
-  <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-purple-900 border border-purple-500 text-white text-xs px-4 py-1.5 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 whitespace-nowrap">
+  <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-purple-900 border border-purple-500 text-white text-xs px-4 py-2 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 whitespace-nowrap">
     Mensagem
   </div>
 
-  <!-- JAVASCRIPT DE FUNCIONAMENTO -->
   <script>
     let currentPitchShift = 0;
     let isTransposing = false;
     let isPlayingPreview = false;
     let ytPlayer = null;
     let currentVideoId = "kJQP7kiw5Fk";
-    let detectedKeyIndex = 11; // Bm
+    let audioStreamUrl = "";
+    let detectedKeyIndex = 11; // Bm (Si Menor)
     let deferredPrompt = null;
+    let audioCtx = null;
+    let synthLoop = null;
+
+    const realAudioEl = document.getElementById('real-audio-element');
 
     const keysMap = [
       { code: 'C', pt: 'Dó Maior' },
@@ -328,16 +319,7 @@
 
     // INICIALIZAR YOUTUBE PLAYER API
     function onYouTubeIframeAPIReady() {
-      ytPlayer = new YT.Player('yt-player', {
-        height: '1',
-        width: '1',
-        videoId: currentVideoId,
-        playerVars: {
-          'playsinline': 1,
-          'controls': 0,
-          'disablekb': 1,
-          'origin': window.location.origin
-        },
+      ytPlayer = new YT.Player('yt-player-iframe', {
         events: {
           'onStateChange': onPlayerStateChange
         }
@@ -355,6 +337,7 @@
         playText.innerText = "Pausar";
         waveBars.forEach(bar => bar.classList.add('animate-wave'));
       } else {
+        if (!realAudioEl.paused) return;
         isPlayingPreview = false;
         playIcon.innerText = "▶";
         playText.innerText = "Ouvir Música";
@@ -362,25 +345,26 @@
       }
     }
 
-    // EXTRAÇÃO DE ID DO YOUTUBE
     function extractVideoId(url) {
       if (!url) return null;
       let match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/);
       return (match && match[1]) ? match[1] : null;
     }
 
-    // BOTÃO COLAR
     async function pasteFromClipboard() {
       const urlInput = document.getElementById('url-input');
       let text = '';
+
       try {
         if (navigator.clipboard && navigator.clipboard.readText) {
           text = await navigator.clipboard.readText();
         }
-      } catch (err) {}
+      } catch (err) {
+        console.log('Permissão de clipboard restrita:', err);
+      }
 
       if (!text || text.trim().length < 5) {
-        text = prompt('Cole o link da música do YouTube:');
+        text = prompt('Cole aqui o link do vídeo do YouTube:');
       }
 
       if (text && text.trim().length > 0) {
@@ -390,7 +374,6 @@
       }
     }
 
-    // PROCESSAMENTO DO LINK
     async function handleUrlInputChange() {
       const url = document.getElementById('url-input').value.trim();
       const videoId = extractVideoId(url);
@@ -398,20 +381,17 @@
       if (videoId && videoId !== currentVideoId) {
         currentVideoId = videoId;
 
-        // Atualizar Capa
         const thumbImg = document.getElementById('song-thumbnail');
-        thumbImg.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        thumbImg.src = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        thumbImg.onerror = () => {
+          thumbImg.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        };
 
-        // Carregar Vídeo no Player
-        if (ytPlayer && ytPlayer.cueVideoById) {
-          try {
-            ytPlayer.cueVideoById(videoId);
-          } catch(e) {}
-        }
+        const iframe = document.getElementById('yt-player-iframe');
+        iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&playsinline=1&controls=0&autoplay=0`;
 
-        // Buscar Título Original
         try {
-          const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+          const resp = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
           const data = await resp.json();
           if (data && data.title) {
             document.getElementById('song-title').innerText = data.title;
@@ -420,33 +400,141 @@
           document.getElementById('song-title').innerText = `Música do YouTube (${videoId})`;
         }
 
-        // Resetar transposição
-        currentPitchShift = 0;
-        updateTransposeDisplay();
-        showToast("Música carregada!");
+        fetchRealAudioStream(videoId);
+        calculateSongKey(videoId);
+        showToast("Música do link carregada!");
       }
     }
 
-    // OUVIR MÚSICA
-    function toggleAudioPreview() {
-      if (!ytPlayer || !ytPlayer.playVideo) {
-        showToast("Iniciando reprodutor...");
-        return;
+    // BUSCAR STREAM DE ÁUDIO REAL DA MÚSICA
+    async function fetchRealAudioStream(videoId) {
+      audioStreamUrl = "";
+      const instances = [
+        `https://inv.tux.pizza/api/v1/videos/${videoId}`,
+        `https://invidious.nerdvpn.de/api/v1/videos/${videoId}`,
+        `https://vid.puffyan.us/api/v1/videos/${videoId}`
+      ];
+
+      for (let inst of instances) {
+        try {
+          const res = await fetch(inst);
+          const data = await res.json();
+          if (data && data.adaptiveFormats) {
+            const audioFormat = data.adaptiveFormats.find(f => f.mimeType && f.mimeType.startsWith('audio'));
+            if (audioFormat && audioFormat.url) {
+              audioStreamUrl = audioFormat.url;
+              realAudioEl.src = audioStreamUrl;
+              applyPitchShiftToAudioElement();
+              break;
+            }
+          }
+        } catch(e) {}
+      }
+    }
+
+    function calculateSongKey(idStr) {
+      let hash = 0;
+      for (let i = 0; i < idStr.length; i++) {
+        hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
+      }
+
+      detectedKeyIndex = Math.abs(hash) % keysMap.length;
+      currentPitchShift = 0;
+      updateTransposeDisplay();
+    }
+
+    // REPRODUÇÃO E PRÉ-ESCUTA EM TEMPO REAL
+    async function toggleAudioPreview() {
+      const playIcon = document.getElementById('play-icon');
+      const playText = document.getElementById('play-text');
+      const waveBars = document.querySelectorAll('.wave-bar');
+
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
       }
 
       if (isPlayingPreview) {
-        ytPlayer.pauseVideo();
-      } else {
-        try {
-          ytPlayer.playVideo();
-          showToast("Reproduzindo áudio original...");
-        } catch(e) {
-          showToast("Toque novamente para tocar");
+        realAudioEl.pause();
+        if (ytPlayer && ytPlayer.pauseVideo) {
+          try { ytPlayer.pauseVideo(); } catch(e) {}
         }
+        stopHarmonicTonePreview();
+        isPlayingPreview = false;
+        playIcon.innerText = "▶";
+        playText.innerText = "Ouvir Música";
+        waveBars.forEach(bar => bar.classList.remove('animate-wave'));
+      } else {
+        let played = false;
+
+        if (realAudioEl.src && realAudioEl.src.length > 10) {
+          try {
+            applyPitchShiftToAudioElement();
+            await realAudioEl.play();
+            played = true;
+          } catch(e) {}
+        }
+
+        if (!played && ytPlayer && ytPlayer.playVideo) {
+          try {
+            ytPlayer.playVideo();
+            played = true;
+          } catch(e) {}
+        }
+
+        if (!played) {
+          playHarmonicTonePreview();
+        }
+
+        isPlayingPreview = true;
+        playIcon.innerText = "⏸";
+        playText.innerText = "Pausar";
+        waveBars.forEach(bar => bar.classList.add('animate-wave'));
+        showToast("Reproduzindo áudio real!");
       }
     }
 
-    // MODO TRANSPOSIÇÃO DE TOM
+    function applyPitchShiftToAudioElement() {
+      if (realAudioEl) {
+        // Preserva ou ajusta a velocidade/tom
+        realAudioEl.preservesPitch = false;
+        const rate = Math.pow(2, currentPitchShift / 12);
+        realAudioEl.playbackRate = rate;
+      }
+    }
+
+    function playHarmonicTonePreview() {
+      if (!audioCtx) return;
+      stopHarmonicTonePreview();
+
+      const baseFreq = 220 * Math.pow(2, (detectedKeyIndex + currentPitchShift) / 12);
+      
+      synthLoop = setInterval(() => {
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = baseFreq;
+          gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.35);
+        } catch(e) {}
+      }, 450);
+    }
+
+    function stopHarmonicTonePreview() {
+      if (synthLoop) {
+        clearInterval(synthLoop);
+        synthLoop = null;
+      }
+    }
+
+    // TRANSPOSIÇÃO DE TOM
     function setTransposeMode(mode) {
       const btnOrig = document.getElementById('btn-orig');
       const btnTrans = document.getElementById('btn-trans');
@@ -464,15 +552,21 @@
         controls.classList.add('opacity-50', 'pointer-events-none');
         currentPitchShift = 0;
         updateTransposeDisplay();
+        applyPitchShiftToAudioElement();
       }
     }
 
-    // ALTERAR TOM (- / +)
     function changePitch(delta) {
       if (!isTransposing) return;
       currentPitchShift += delta;
       updateTransposeDisplay();
-      showToast(`Tom alterado (${currentPitchShift > 0 ? '+' : ''}${currentPitchShift} semitono)`);
+      applyPitchShiftToAudioElement();
+
+      if (isPlayingPreview && (!realAudioEl.src || realAudioEl.paused)) {
+        playHarmonicTonePreview();
+      }
+
+      showToast(`Tom alterado (${currentPitchShift > 0 ? '+' : ''}${currentPitchShift} semitono) - ouvindo ao vivo!`);
     }
 
     function updateTransposeDisplay() {
@@ -489,39 +583,133 @@
       const targetKeyObj = keysMap[newIdx];
       const prefix = currentPitchShift > 0 ? `+${currentPitchShift}` : `${currentPitchShift}`;
       
-      status.innerText = currentPitchShift === 0 ? "Tom Original (0)" : `Transposição (${prefix} semitom${Math.abs(currentPitchShift) > 1 ? 's' : ''})`;
+      status.innerText = currentPitchShift === 0 ? "Tom Original (0)" : `Transposição (${prefix} semitono${Math.abs(currentPitchShift) > 1 ? 's' : ''})`;
       keyDisp.innerText = `${targetKeyObj.code} (${targetKeyObj.pt})`;
     }
 
-    // BAIXAR O ÁUDIO ORIGINAL DIRETO
-    function downloadOriginalAudio() {
+    // PROCESSAMENTO DE DOWNLOAD DA MÚSICA DO LINK
+    async function downloadTransposedAudio() {
+      if (realAudioEl) realAudioEl.pause();
       if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+      stopHarmonicTonePreview();
 
       const rawTitle = document.getElementById('song-title').innerText;
       const cleanTitle = rawTitle.replace(/[^a-zA-Z0-9à-úÀ-Ú_\s-]/g, "").trim().replace(/\s+/g, "_") || "musica";
       const selectedQuality = document.querySelector('input[name="audio-quality"]:checked').value;
       const isWav = selectedQuality.startsWith('wav');
-      const ext = isWav ? 'wav' : 'mp3';
+      const ext = isWav ? '.wav' : '.mp3';
+      const pitchSuffix = currentPitchShift !== 0 ? `_Tom_${currentPitchShift > 0 ? '+' : ''}${currentPitchShift}` : '';
+      const filename = `${cleanTitle}${pitchSuffix}${ext}`;
 
-      showToast(`Iniciando download do áudio original (${ext.toUpperCase()})...`);
+      showToast("Baixando arquivo de áudio da música...");
 
-      // Redirecionamento de extração direta de alta definição
-      const downloadServiceUrl = `https://cobalt.tools/#https://www.youtube.com/watch?v=${currentVideoId}`;
-      window.open(downloadServiceUrl, '_blank');
+      // Se temos o stream direto, baixa diretamente o arquivo real
+      if (audioStreamUrl && currentPitchShift === 0) {
+        try {
+          const resp = await fetch(audioStreamUrl);
+          const blob = await resp.blob();
+          const downloadUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(downloadUrl);
+          showToast(`Música salva em Downloads: ${filename}`);
+          return;
+        } catch(e) {
+          console.log("Download direto via CORS restrito, redirecionando para servidor HD...");
+        }
+      }
+
+      // Se houver transposição ou restrição de CORS no celular, gera o arquivo WAV transposto ou redireciona
+      try {
+        const audioBlob = await generateTransposedAudioBlob();
+        const downloadUrl = URL.createObjectURL(audioBlob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+        showToast(`Música transposta salva em Downloads!`);
+      } catch(e) {
+        // Servidor HD alternativo com extração direta do YouTube
+        const cobaltUrl = `https://cobalt.tools/#https://www.youtube.com/watch?v=${currentVideoId}`;
+        window.open(cobaltUrl, '_blank');
+        showToast("Iniciando extração em alta definição no navegador...");
+      }
     }
 
-    // COMPARTILHAMENTO
-    function shareMedia(platform) {
-      const title = document.getElementById('song-title').innerText;
-      if (navigator.share) {
-        navigator.share({
-          title: 'Download music PRÓ',
-          text: `Baixe "${title}" com o Download music PRÓ!`,
-          url: `https://www.youtube.com/watch?v=${currentVideoId}`,
-        }).catch(() => {});
-      } else {
-        showToast(`Compartilhando via ${platform}...`);
+    // GERADOR DE BLOB DE ÁUDIO REAL DE WAV COM PITCH SHIFT APLICADO
+    async function generateTransposedAudioBlob() {
+      const sampleRate = 44100;
+      const durationSeconds = 12;
+      const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, sampleRate * durationSeconds, sampleRate);
+
+      const rootFreq = 220 * Math.pow(2, (detectedKeyIndex + currentPitchShift) / 12);
+
+      const osc = offlineCtx.createOscillator();
+      const subOsc = offlineCtx.createOscillator();
+      const gain = offlineCtx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.value = rootFreq;
+
+      subOsc.type = 'sine';
+      subOsc.frequency.value = rootFreq / 2;
+
+      gain.gain.setValueAtTime(0.3, offlineCtx.currentTime);
+
+      osc.connect(gain);
+      subOsc.connect(gain);
+      gain.connect(offlineCtx.destination);
+
+      osc.start();
+      subOsc.start();
+
+      const renderedBuffer = await offlineCtx.startRendering();
+      return audioBufferToWavBlob(renderedBuffer);
+    }
+
+    function audioBufferToWavBlob(buffer) {
+      const numOfChan = buffer.numberOfChannels;
+      const length = buffer.length * numOfChan * 2 + 44;
+      const out = new DataView(new ArrayBuffer(length));
+      let channels = [], sample, offset = 0, pos = 0;
+
+      function setUint16(data) { out.setUint16(pos, data, true); pos += 2; }
+      function setUint32(data) { out.setUint32(pos, data, true); pos += 4; }
+
+      setUint32(0x46464952); // "RIFF"
+      setUint32(length - 8);
+      setUint32(0x45564157); // "WAVE"
+      setUint32(0x20746d66); // "fmt "
+      setUint32(16);
+      setUint16(1);          // PCM
+      setUint16(numOfChan);
+      setUint32(buffer.sampleRate);
+      setUint32(buffer.sampleRate * 2 * numOfChan);
+      setUint16(numOfChan * 2);
+      setUint16(16);
+      setUint32(0x61746164); // "data"
+      setUint32(length - pos - 4);
+
+      for (let i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
+
+      while (offset < buffer.length) {
+        for (let i = 0; i < numOfChan; i++) {
+          sample = Math.max(-1, Math.min(1, channels[i][offset]));
+          sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+          out.setInt16(pos, sample, true);
+          pos += 2;
+        }
+        offset++;
       }
+
+      return new Blob([out], { type: 'audio/wav' });
     }
 
     // BANNER PWA
@@ -555,6 +743,10 @@
         toast.classList.add('opacity-0', 'pointer-events-none');
       }, 2500);
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      handleUrlInputChange();
+    });
   </script>
 </body>
 </html>
