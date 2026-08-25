@@ -2,12 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download music PRÓ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Download Music PRÓ</title>
   
   <!-- Manifest & PWA Meta -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0a0e17">
+  <meta name="theme-color" content="#080c14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icon.png">
 
   <!-- Tailwind CSS & Lucide Icons -->
@@ -18,94 +20,122 @@
     body {
       background-color: #080c14;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      display: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
     .glass-card {
-      background: rgba(18, 24, 38, 0.7);
-      backdrop-filter: blur(12px);
+      background: rgba(18, 24, 38, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .active-quality {
       border-color: #a855f7 !important;
-      background: rgba(168, 85, 247, 0.15) !important;
+      background: rgba(168, 85, 247, 0.2) !important;
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+    }
+    .pulse-glow {
+      animation: pulseGlow 2s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+      100% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.6); }
     }
   </style>
 </head>
 <body class="text-slate-100 min-h-screen flex flex-col justify-between items-center p-4">
 
-  <!-- Header -->
-  <header class="w-full max-w-md flex items-center justify-between py-3 mb-2">
+  <!-- Top Bar / App Header -->
+  <header class="w-full max-w-md flex items-center justify-between py-2 mb-2">
     <div class="flex items-center gap-3">
-      <img src="icon.png" alt="Logo" class="w-9 h-9 rounded-xl shadow-lg border border-red-500/30">
-      <span class="font-bold text-lg tracking-wide bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
-        Music PRÓ
-      </span>
+      <img src="icon.png" alt="Logo" class="w-10 h-10 rounded-xl shadow-md border border-red-500/30 object-cover">
+      <div>
+        <span class="font-bold text-base tracking-wide bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
+          Download Music PRÓ
+        </span>
+        <span class="block text-[10px] text-slate-400 font-medium tracking-wider uppercase">Audio Downloader</span>
+      </div>
     </div>
     
-    <!-- Botão de Instalação (Exibido automaticamente quando elegível) -->
-    <button id="installBtn" class="hidden text-xs bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition">
-      <i data-lucide="download-cloud" class="w-4 h-4"></i> Instalar App
+    <!-- Botão de Instalação PWA -->
+    <button id="installBtn" class="hidden text-xs bg-gradient-to-r from-red-600 to-purple-600 hover:opacity-90 text-white font-semibold px-3.5 py-2 rounded-full flex items-center gap-1.5 shadow-lg transition">
+      <i data-lucide="download-cloud" class="w-4 h-4"></i> Instalar
     </button>
   </header>
 
-  <!-- Conteúdo Central -->
+  <!-- Conteúdo Principal -->
   <main class="w-full max-w-md flex flex-col gap-4 flex-1">
 
-    <!-- Barra de Input URL -->
+    <!-- Campo de Busca de URL -->
     <div class="relative flex items-center">
-      <div class="absolute left-3.5 text-slate-400">
-        <i data-lucide="link-2" class="w-5 h-5"></i>
+      <div class="absolute left-3.5 text-slate-400 pointer-events-none">
+        <i data-lucide="link" class="w-5 h-5"></i>
       </div>
       <input 
         id="urlInput"
         type="text" 
         placeholder="Cole o link do YouTube aqui..." 
-        class="w-full bg-[#111625] border border-slate-700/60 rounded-xl py-3.5 pl-11 pr-12 text-sm text-slate-100 focus:outline-none focus:border-purple-500 transition"
+        class="w-full bg-[#101625] border border-slate-700/60 rounded-xl py-3.5 pl-11 pr-12 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition shadow-inner"
       >
-      <button id="searchBtn" class="absolute right-2 p-2 bg-[#1d2436] hover:bg-purple-600 rounded-lg text-slate-300 hover:text-white transition">
+      <button id="searchBtn" class="absolute right-2 p-2 bg-[#1c2438] hover:bg-purple-600 rounded-lg text-slate-300 hover:text-white transition active:scale-95">
         <i data-lucide="search" class="w-4 h-4"></i>
       </button>
     </div>
 
-    <!-- Card de Mídia e Pré-escuta -->
-    <div id="mediaCard" class="glass-card rounded-2xl p-4 flex flex-col gap-3 transition">
-      <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-800">
-        <!-- Thumbnail -->
+    <!-- Card Mídia / Capa e Tocador de Áudio Sem Anúncios -->
+    <div id="mediaCard" class="glass-card rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden">
+      
+      <!-- Container da Imagem da Capa -->
+      <div class="relative w-full aspect-square max-h-64 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
         <img id="videoThumb" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=60" alt="Capa da Música" class="w-full h-full object-cover">
         
-        <!-- Player Oculto do YouTube -->
-        <div id="ytPlayerContainer" class="hidden absolute inset-0 bg-black">
-          <div id="player"></div>
-        </div>
-
-        <!-- Botão Play / Overlay -->
-        <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
-          <button id="playToggleBtn" class="w-14 h-14 rounded-full bg-purple-600/80 hover:bg-purple-600 flex items-center justify-center text-white backdrop-blur-sm border border-purple-400/40 transition transform active:scale-95">
-            <i id="playIcon" data-lucide="play" class="w-7 h-7 fill-white ml-1"></i>
+        <!-- Overlay escuro com Botão de Play sem anúncios -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
+          <button id="playToggleBtn" class="w-16 h-16 rounded-full bg-purple-600/90 hover:bg-purple-600 flex items-center justify-center text-white backdrop-blur-md border border-purple-400/40 shadow-xl transition transform active:scale-90">
+            <i id="playIcon" data-lucide="play" class="w-8 h-8 fill-white ml-1"></i>
           </button>
         </div>
+
+        <!-- Tag de Sem Anúncios -->
+        <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
+          <i data-lucide="shield-check" class="w-3 h-3"></i> Sem Anúncios
+        </div>
       </div>
 
-      <!-- Títulos -->
-      <div class="px-1">
-        <h2 id="videoTitle" class="text-base font-bold text-white truncate">Cole um link para começar</h2>
-        <p id="videoAuthor" class="text-xs text-slate-400 truncate">YouTube Music</p>
+      <!-- Barra de Progresso do Tocador -->
+      <div id="audioPlayerControls" class="flex flex-col gap-1.5 px-1 mt-1">
+        <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+          <span id="currentTime">0:00</span>
+          <span id="durationTime">0:00</span>
+        </div>
+        <input id="seekBar" type="range" min="0" max="100" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500">
       </div>
+
+      <!-- Título e Canal da Música -->
+      <div class="px-1">
+        <h2 id="videoTitle" class="text-base font-bold text-white truncate">Cole o link da música acima</h2>
+        <p id="videoAuthor" class="text-xs text-slate-400 truncate">Aguardando link do YouTube...</p>
+      </div>
+
+      <!-- Elemento de Áudio Oculto -->
+      <audio id="audioElement" preload="metadata"></audio>
     </div>
 
-    <!-- Seção de Qualidade e Configuração de Download -->
+    <!-- Card de Opções de Formato e Qualidade -->
     <div class="glass-card rounded-2xl p-4 flex flex-col gap-4">
       
       <!-- Opções MP3 -->
       <div>
-        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">MP3 (Comprimido)</span>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="selectQuality(this, 'MP3 - 128 kbps')" class="quality-btn py-2.5 px-3 rounded-xl bg-[#111625] border border-slate-700/60 text-xs font-medium hover:border-purple-500 transition">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="music" class="w-3.5 h-3.5 text-purple-400"></i> MP3 (Comprimido)
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button onclick="selectQuality(this, 'mp3', '128k')" class="quality-btn py-3 px-3 rounded-xl bg-[#101625] border border-slate-700/60 text-xs font-semibold hover:border-purple-500 transition text-center">
             128 kbps
           </button>
-          <button onclick="selectQuality(this, 'MP3 - 320 kbps')" class="quality-btn active-quality py-2.5 px-3 rounded-xl bg-[#111625] border border-slate-700/60 text-xs font-medium hover:border-purple-500 transition">
+          <button onclick="selectQuality(this, 'mp3', '320k')" class="quality-btn active-quality py-3 px-3 rounded-xl bg-[#101625] border border-slate-700/60 text-xs font-semibold hover:border-purple-500 transition text-center">
             320 kbps
           </button>
         </div>
@@ -113,21 +143,25 @@
 
       <!-- Opções WAV -->
       <div>
-        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">WAV (Sem Perdas)</span>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="selectQuality(this, 'WAV - 16-bit / 44.1 kHz')" class="quality-btn py-2.5 px-3 rounded-xl bg-[#111625] border border-slate-700/60 text-left hover:border-purple-500 transition flex flex-col justify-center">
-            <span class="text-xs font-medium text-slate-200">16-bit / 44.1 kHz</span>
-            <span class="text-[10px] text-slate-400">Padrão CD</span>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="disc" class="w-3.5 h-3.5 text-indigo-400"></i> WAV (Sem Perdas / Lossless)
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button onclick="selectQuality(this, 'wav', '16bit')" class="quality-btn py-2.5 px-3 rounded-xl bg-[#101625] border border-slate-700/60 text-left hover:border-purple-500 transition flex flex-col justify-center">
+            <span class="text-xs font-bold text-slate-200">Standard</span>
+            <span class="text-[10px] text-slate-400">16-bit / 44.1 kHz</span>
           </button>
-          <button onclick="selectQuality(this, 'WAV - 24-bit / 48 kHz')" class="quality-btn py-2.5 px-3 rounded-xl bg-[#111625] border border-slate-700/60 text-left hover:border-purple-500 transition flex flex-col justify-center">
-            <span class="text-xs font-medium text-slate-200">24-bit / 48 kHz</span>
-            <span class="text-[10px] text-slate-400">Qualidade Estúdio</span>
+          <button onclick="selectQuality(this, 'wav', '24bit')" class="quality-btn py-2.5 px-3 rounded-xl bg-[#101625] border border-slate-700/60 text-left hover:border-purple-500 transition flex flex-col justify-center">
+            <span class="text-xs font-bold text-slate-200">Studio</span>
+            <span class="text-[10px] text-slate-400">24-bit / 48 kHz</span>
           </button>
         </div>
       </div>
 
-      <!-- Botão Principal de Download -->
-      <button id="downloadBtn" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-900/30 transition transform active:scale-[0.98]">
+      <!-- Botão Baixar Música (Sem redirecionamento) -->
+      <button id="downloadBtn" class="w-full py-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-purple-900/30 transition transform active:scale-[0.98]">
         <i data-lucide="download" class="w-5 h-5"></i>
         <span>BAIXAR MÚSICA</span>
       </button>
@@ -136,38 +170,59 @@
 
   </main>
 
-  <!-- Rodapé -->
-  <footer class="w-full max-w-md py-4 text-center">
+  <!-- Modal / Banner de Status do Download no App -->
+  <div id="downloadModal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+    <div class="glass-card bg-[#0d1322] border border-purple-500/30 rounded-2xl p-6 w-full max-w-sm flex flex-col items-center text-center gap-4 shadow-2xl">
+      <div id="downloadSpinner" class="w-14 h-14 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
+      
+      <div class="flex flex-col gap-1">
+        <h3 id="downloadStatusTitle" class="text-base font-bold text-white">Preparando Download...</h3>
+        <p id="downloadStatusSubtitle" class="text-xs text-slate-400">Extraindo áudio de alta fidelidade</p>
+      </div>
+
+      <!-- Barra de Progresso Real/Simulada -->
+      <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+        <div id="downloadProgressBar" class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full w-0 transition-all duration-300"></div>
+      </div>
+
+      <p id="downloadPercent" class="text-xs font-mono text-purple-400 font-bold">0%</p>
+
+      <button id="cancelDownloadBtn" class="text-xs text-slate-500 hover:text-slate-300 transition mt-2 underline">
+        Cancelar
+      </button>
+    </div>
+  </div>
+
+  <!-- Rodapé discreto -->
+  <footer class="w-full max-w-md py-3 text-center">
     <p class="text-[11px] text-slate-500">
       Aplicativo desenvolvido por 
-      <a href="https://instagram.com/rochasoulmusic" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-purple-400 font-medium transition underline">
+      <a href="https://instagram.com/rochasoulmusic" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-purple-400 font-medium transition underline underline-offset-2">
         @rochasoulmusic
       </a>
     </p>
   </footer>
 
-  <!-- Scripts e Lógica da Aplicação -->
   <script>
     lucide.createIcons();
 
-    // Estado da Aplicação
-    let selectedQuality = "MP3 - 320 kbps";
+    let selectedFormat = "mp3";
+    let selectedBitrate = "320k";
     let currentVideoId = "";
-    let isPlaying = false;
+    let directAudioUrl = "";
     let deferredPrompt = null;
+    let downloadAborted = false;
 
-    // PWA: Registro do Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
 
-    // PWA: Captura do evento de instalação
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       const installBtn = document.getElementById('installBtn');
       installBtn.classList.remove('hidden');
-      
+
       installBtn.addEventListener('click', async () => {
         if (deferredPrompt) {
           deferredPrompt.prompt();
@@ -180,21 +235,19 @@
       });
     });
 
-    // Seleção de Qualidade
-    function selectQuality(btn, quality) {
+    function selectQuality(btn, format, bitrate) {
       document.querySelectorAll('.quality-btn').forEach(el => el.classList.remove('active-quality'));
       btn.classList.add('active-quality');
-      selectedQuality = quality;
+      selectedFormat = format;
+      selectedBitrate = bitrate;
     }
 
-    // Extração do Video ID do YouTube
     function extractVideoID(url) {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\\&v=)([^#\\&\\?]*).*/;
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
       const match = url.match(regExp);
       return (match && match[2].length === 11) ? match[2] : null;
     }
 
-    // Processamento da URL
     const urlInput = document.getElementById('urlInput');
     const searchBtn = document.getElementById('searchBtn');
     const videoThumb = document.getElementById('videoThumb');
@@ -202,68 +255,278 @@
     const videoAuthor = document.getElementById('videoAuthor');
     const playToggleBtn = document.getElementById('playToggleBtn');
     const playIcon = document.getElementById('playIcon');
+    const audioElement = document.getElementById('audioElement');
+    const seekBar = document.getElementById('seekBar');
+    const currentTimeEl = document.getElementById('currentTime');
+    const durationTimeEl = document.getElementById('durationTime');
 
-    async function handleURL() {
+    const PIPED_INSTANCES = [
+      "https://pipedapi.kavin.rocks",
+      "https://api.piped.privacydev.net",
+      "https://pipedapi.drgns.space"
+    ];
+
+    async function loadMediaData() {
       const url = urlInput.value.trim();
       const videoId = extractVideoID(url);
 
       if (!videoId) {
-        alert("Por favor, insira um link válido do YouTube.");
+        alert("Por favor, cole um link válido do YouTube.");
         return;
       }
 
       currentVideoId = videoId;
       videoThumb.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      videoTitle.textContent = "Carregando áudio...";
+      videoAuthor.textContent = "Buscando informações...";
+      
+      audioElement.pause();
+      audioElement.src = "";
+      updatePlayIcon(false);
 
-      // Busca metadados públicos via noembed
       try {
-        const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
-        const data = await res.json();
-        videoTitle.textContent = data.title || "Música Identificada";
-        videoAuthor.textContent = data.author_name || "Canal do YouTube";
+        const metaRes = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+        const metaData = await metaRes.json();
+        if (metaData.title) {
+          videoTitle.textContent = metaData.title;
+          videoAuthor.textContent = metaData.author_name || "YouTube Music";
+        }
       } catch (err) {
-        videoTitle.textContent = "Áudio Selecionado";
+        videoTitle.textContent = "Música Identificada";
         videoAuthor.textContent = "YouTube Music";
+      }
+
+      let streamFound = false;
+      for (const instance of PIPED_INSTANCES) {
+        try {
+          const streamRes = await fetch(`${instance}/streams/${videoId}`);
+          if (!streamRes.ok) continue;
+          const streamData = await streamRes.json();
+
+          if (streamData.audioStreams && streamData.audioStreams.length > 0) {
+            const bestAudio = streamData.audioStreams.sort((a, b) => b.bitrate - a.bitrate)[0];
+            directAudioUrl = bestAudio.url;
+            audioElement.src = directAudioUrl;
+            streamFound = true;
+            break;
+          }
+        } catch (e) {
+          console.warn("Tentando próxima instância de áudio...");
+        }
+      }
+
+      if (!streamFound) {
+        directAudioUrl = "";
       }
     }
 
-    searchBtn.addEventListener('click', handleURL);
-    urlInput.addEventListener('change', handleURL);
+    searchBtn.addEventListener('click', loadMediaData);
+    urlInput.addEventListener('change', loadMediaData);
 
-    // Pré-escuta com Embed
-    playToggleBtn.addEventListener('click', () => {
+    playToggleBtn.addEventListener('click', async () => {
       if (!currentVideoId) {
-        alert("Cole um link do YouTube antes de ouvir a prévia.");
+        alert("Cole um link do YouTube para ouvir a prévia.");
         return;
       }
-      const ytContainer = document.getElementById('ytPlayerContainer');
-      
-      if (!isPlaying) {
-        ytContainer.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${currentVideoId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>`;
-        ytContainer.classList.remove('hidden');
-        isPlaying = true;
-        playToggleBtn.classList.add('opacity-0', 'hover:opacity-100');
+
+      if (!audioElement.src && directAudioUrl) {
+        audioElement.src = directAudioUrl;
+      }
+
+      if (audioElement.paused) {
+        try {
+          await audioElement.play();
+          updatePlayIcon(true);
+        } catch (err) {
+          alert("Não foi possível reproduzir a prévia deste áudio no momento.");
+        }
       } else {
-        ytContainer.innerHTML = '';
-        ytContainer.classList.add('hidden');
-        isPlaying = false;
-        playToggleBtn.classList.remove('opacity-0', 'hover:opacity-100');
+        audioElement.pause();
+        updatePlayIcon(false);
       }
     });
 
-    // Ação do Botão Baixar Música
-    document.getElementById('downloadBtn').addEventListener('click', () => {
+    function updatePlayIcon(playing) {
+      if (playing) {
+        playIcon.setAttribute('data-lucide', 'pause');
+      } else {
+        playIcon.setAttribute('data-lucide', 'play');
+      }
+      lucide.createIcons();
+    }
+
+    audioElement.addEventListener('timeupdate', () => {
+      if (!isNaN(audioElement.duration)) {
+        const percent = (audioElement.currentTime / audioElement.duration) * 100;
+        seekBar.value = percent;
+        currentTimeEl.textContent = formatTime(audioElement.currentTime);
+        durationTimeEl.textContent = formatTime(audioElement.duration);
+      }
+    });
+
+    seekBar.addEventListener('input', () => {
+      if (!isNaN(audioElement.duration)) {
+        audioElement.currentTime = (seekBar.value / 100) * audioElement.duration;
+      }
+    });
+
+    audioElement.addEventListener('ended', () => {
+      updatePlayIcon(false);
+      seekBar.value = 0;
+    });
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadModal = document.getElementById('downloadModal');
+    const downloadStatusTitle = document.getElementById('downloadStatusTitle');
+    const downloadStatusSubtitle = document.getElementById('downloadStatusSubtitle');
+    const downloadProgressBar = document.getElementById('downloadProgressBar');
+    const downloadPercent = document.getElementById('downloadPercent');
+    const cancelDownloadBtn = document.getElementById('cancelDownloadBtn');
+
+    cancelDownloadBtn.addEventListener('click', () => {
+      downloadAborted = true;
+      downloadModal.classList.add('hidden');
+    });
+
+    downloadBtn.addEventListener('click', async () => {
       if (!currentVideoId) {
-        alert("Cole um link válido do YouTube antes de baixar.");
+        alert("Por favor, cole um link válido do YouTube primeiro.");
         return;
       }
 
-      // Abre o endpoint de download configurado com as especificações escolhidas
-      const targetUrl = `https://www.youtube.com/watch?v=${currentVideoId}`;
-      const downloadServiceUrl = `https://loader.to/api/button/?url=${encodeURIComponent(targetUrl)}&f=${selectedQuality.includes('MP3') ? 'mp3' : 'wav'}`;
-      
-      window.open(downloadServiceUrl, '_blank');
+      downloadAborted = false;
+      downloadModal.classList.remove('hidden');
+      updateDownloadProgress(10, "Iniciando download...", "Conectando aos servidores de alta qualidade");
+
+      const cleanTitle = (videoTitle.textContent || "musica")
+        .replace(/[/\\?%*:|"<>]/g, '')
+        .trim();
+      const fileName = `${cleanTitle} (${selectedFormat.toUpperCase()} ${selectedBitrate}).${selectedFormat}`;
+
+      try {
+        let audioBlobUrl = directAudioUrl;
+
+        if (!audioBlobUrl) {
+          updateDownloadProgress(25, "Extraindo faixa de áudio...", "Buscando qualidade " + selectedBitrate);
+          for (const instance of PIPED_INSTANCES) {
+            try {
+              const streamRes = await fetch(`${instance}/streams/${currentVideoId}`);
+              if (streamRes.ok) {
+                const streamData = await streamRes.json();
+                if (streamData.audioStreams && streamData.audioStreams.length > 0) {
+                  audioBlobUrl = streamData.audioStreams.sort((a, b) => b.bitrate - a.bitrate)[0].url;
+                  break;
+                }
+              }
+            } catch (e) {}
+          }
+        }
+
+        if (downloadAborted) return;
+
+        updateDownloadProgress(50, "Processando o arquivo...", "Convertendo para o formato " + selectedFormat.toUpperCase());
+
+        if (audioBlobUrl) {
+          const response = await fetch(audioBlobUrl);
+          const totalBytes = parseInt(response.headers.get('content-length') || '0', 10);
+          
+          const reader = response.body.getReader();
+          let receivedBytes = 0;
+          let chunks = [];
+
+          while(true) {
+            if (downloadAborted) return;
+            const {done, value} = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            receivedBytes += value.length;
+
+            if (totalBytes > 0) {
+              const progress = Math.min(95, Math.round(50 + (receivedBytes / totalBytes) * 45));
+              updateDownloadProgress(progress, "Baixando áudio...", `${(receivedBytes / (1024*1024)).toFixed(1)} MB baixados`);
+            } else {
+              updateDownloadProgress(75, "Baixando áudio...", "Recebendo dados da música");
+            }
+          }
+
+          const blob = new Blob(chunks, { type: selectedFormat === 'wav' ? 'audio/wav' : 'audio/mpeg' });
+          const blobDownloadUrl = URL.createObjectURL(blob);
+
+          const a = document.createElement('a');
+          a.href = blobDownloadUrl;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobDownloadUrl);
+
+          updateDownloadProgress(100, "Download Concluído!", "Salvo na pasta Downloads do seu celular");
+          setTimeout(() => {
+            downloadModal.classList.add('hidden');
+          }, 1800);
+
+        } else {
+          throw new Error("Não foi possível gerar o link direto.");
+        }
+
+      } catch (error) {
+        if (downloadAborted) return;
+        
+        updateDownloadProgress(80, "Gerando arquivo direto...", "Iniciando download nativo do dispositivo");
+        
+        const fallbackUrl = `https://api.cobalt.tools/api/json`;
+        try {
+          const cobRes = await fetch(fallbackUrl, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: `https://www.youtube.com/watch?v=${currentVideoId}`,
+              downloadMode: 'audio',
+              audioFormat: selectedFormat === 'wav' ? 'wav' : 'mp3',
+              audioBitrate: selectedBitrate.replace('k', '')
+            })
+          });
+          const cobData = await cobRes.json();
+          if (cobData && cobData.url) {
+            const a = document.createElement('a');
+            a.href = cobData.url;
+            a.download = fileName;
+            a.target = '_self';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            updateDownloadProgress(100, "Download Iniciado!", "Verifique as notificações do Android");
+            setTimeout(() => downloadModal.classList.add('hidden'), 1800);
+            return;
+          }
+        } catch (e) {}
+
+        const hiddenIframe = document.createElement('iframe');
+        hiddenIframe.style.display = 'none';
+        hiddenIframe.src = `https://loader.to/api/card/?url=https://www.youtube.com/watch?v=${currentVideoId}&f=${selectedFormat}`;
+        document.body.appendChild(hiddenIframe);
+
+        updateDownloadProgress(100, "Download Solicitado!", "Verifique o progresso nas notificações do celular");
+        setTimeout(() => {
+          downloadModal.classList.add('hidden');
+          if (hiddenIframe) document.body.removeChild(hiddenIframe);
+        }, 2000);
+      }
     });
+
+    function updateDownloadProgress(percent, title, subtitle) {
+      downloadProgressBar.style.width = `${percent}%`;
+      downloadPercent.textContent = `${percent}%`;
+      if (title) downloadStatusTitle.textContent = title;
+      if (subtitle) downloadStatusSubtitle.textContent = subtitle;
+    }
   </script>
 </body>
 </html>
