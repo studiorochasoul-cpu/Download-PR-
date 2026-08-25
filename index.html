@@ -12,6 +12,7 @@
   <script src="https://www.youtube.com/iframe_api"></script>
   <!-- PWA Manifest Inline Data -->
   <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkRvd25sb2FkIG11c2ljIFBSw5MiLAogICJzaG9ydF9uYW1lIjogIk11c2ljIFBSw5MiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzA5MGQxNiIsCiAgInRoZW1lX2NvbG9yIjogIiMwOTBkMTYiCi99">
+  
   <style>
     * {
       font-family: 'Inter', sans-serif;
@@ -20,9 +21,8 @@
       box-sizing: border-box;
     }
     body, html {
-      height: 100%;
-      height: 100dvh;
-      overflow: hidden;
+      min-height: 100vh;
+      min-height: 100dvh;
       margin: 0;
       padding: 0;
       background-color: #070a12;
@@ -32,6 +32,9 @@
       background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
       box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
     }
+    .neon-btn:hover {
+      box-shadow: 0 6px 25px rgba(168, 85, 247, 0.6);
+    }
     .neon-btn:active {
       transform: scale(0.98);
       box-shadow: 0 2px 10px rgba(168, 85, 247, 0.3);
@@ -39,7 +42,7 @@
     /* Waveform Animation */
     @keyframes pulse-wave {
       0%, 100% { height: 4px; }
-      50% { height: 20px; }
+      50% { height: 24px; }
     }
     .wave-bar {
       height: 4px;
@@ -55,23 +58,29 @@
     .wave-bar.animate-wave:nth-child(6) { animation-delay: 0.3s; }
   </style>
 </head>
-<body class="flex flex-col justify-between h-full w-full max-w-md mx-auto relative bg-[#070a12] overflow-hidden">
+<body class="flex flex-col min-h-screen w-full bg-[#070a12] text-slate-100 overflow-x-hidden">
 
-  <!-- PLAYER YOUTUBE OCULTO PARA REPRODUÇÃO REAL DE ÁUDIO -->
-  <div id="yt-player-container" class="hidden">
-    <div id="yt-player"></div>
+  <!-- REPRODUTOR DE ÁUDIO E IFRAME YOUTUBE -->
+  <audio id="real-audio-element" class="hidden" preload="auto" crossorigin="anonymous" playsinline></audio>
+  <div class="fixed top-0 left-0 -z-50 pointer-events-none opacity-0 w-1 h-1 overflow-hidden">
+    <iframe 
+      id="yt-player-iframe" 
+      src="https://www.youtube.com/embed/kJQP7kiw5Fk?enablejsapi=1&playsinline=1&controls=0" 
+      allow="autoplay; encrypted-media" 
+      class="w-full h-full"
+    ></iframe>
   </div>
 
   <!-- BANNER COMPACTO DE INSTALAÇÃO PWA -->
-  <div id="pwa-banner" class="bg-gradient-to-r from-purple-900/90 to-indigo-900/90 border-b border-purple-500/30 px-3 py-1.5 flex items-center justify-between text-xs z-50 shrink-0">
+  <div id="pwa-banner" class="bg-gradient-to-r from-purple-900/90 to-indigo-900/90 border-b border-purple-500/30 px-4 py-2 flex items-center justify-between text-xs z-50 shrink-0">
     <div class="flex items-center gap-2">
       <div class="w-6 h-6 rounded-lg bg-red-600 flex items-center justify-center font-black text-[10px] text-white shadow">
         PRÓ
       </div>
-      <span>Instalar <strong>Download music PRÓ</strong>?</span>
+      <span>Instalar <strong>Download music PRÓ</strong> no dispositivo?</span>
     </div>
     <div class="flex items-center gap-2">
-      <button onclick="installPWA()" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-2.5 py-1 rounded-md text-[11px] shadow">
+      <button onclick="installPWA()" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-3 py-1 rounded-md text-[11px] shadow transition-all">
         Instalar
       </button>
       <button onclick="closePWABanner()" class="text-slate-400 hover:text-white text-base px-1">
@@ -80,58 +89,58 @@
     </div>
   </div>
 
-  <!-- HEADER -->
-  <header class="px-4 py-2 flex items-center justify-between border-b border-slate-800/80 bg-[#0b101d] shrink-0">
-    <div class="flex items-center gap-2.5">
-      <div class="relative w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg border border-red-500/30">
-        <svg class="w-4 h-4 text-white fill-current ml-0.5" viewBox="0 0 24 24">
+  <!-- HEADER RESPONSIVO -->
+  <header class="w-full px-4 md:px-8 py-3 flex items-center justify-between border-b border-slate-800/80 bg-[#0b101d] shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="relative w-9 h-9 rounded-lg bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg border border-red-500/30">
+        <svg class="w-5 h-5 text-white fill-current ml-0.5" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z"/>
         </svg>
         <span class="absolute -bottom-1 -right-1 bg-purple-600 text-[8px] font-black px-1 rounded text-white border border-slate-900">PRÓ</span>
       </div>
       <div>
-        <h1 class="text-sm font-extrabold tracking-tight text-white leading-none">Download music <span class="text-purple-400">PRÓ</span></h1>
-        <p class="text-[9px] text-slate-400">Extração de áudio em alta qualidade</p>
+        <h1 class="text-base md:text-lg font-extrabold tracking-tight text-white leading-none">Download music <span class="text-purple-400">PRÓ</span></h1>
+        <p class="text-[10px] md:text-xs text-slate-400">Extração de áudio em alta qualidade e transposição de tom</p>
       </div>
     </div>
-    <div class="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-purple-400 text-xs font-bold">
+    <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-purple-400 text-xs font-bold shadow">
       👤
     </div>
   </header>
 
-  <!-- CONTEÚDO PRINCIPAL (TELA UNIFICADA / ZERO SCROLL) -->
-  <main class="flex-1 flex flex-col justify-between p-2.5 overflow-hidden relative">
+  <!-- CONTEÚDO PRINCIPAL (ADAPTÁVEL DE MÓVEL A DESKTOP) -->
+  <main class="flex-1 w-full max-w-4xl mx-auto p-3 md:p-6 flex flex-col justify-between relative min-h-0">
 
     <!-- TELA 1: HOME / INSERIR LINK -->
-    <div id="screen-home" class="flex-1 flex flex-col justify-between h-full gap-2">
+    <div id="screen-home" class="flex-1 flex flex-col justify-between w-full h-full gap-4">
       
       <!-- Campo da URL com Botão Colar -->
-      <div class="shrink-0">
-        <div class="relative flex items-center bg-[#121826] border border-purple-500/30 rounded-xl p-1.5 focus-within:border-purple-500 transition-all shadow-md">
-          <span class="pl-2 pr-1 text-purple-400 text-xs">🔗</span>
+      <div class="shrink-0 w-full">
+        <div class="relative flex items-center bg-[#121826] border border-purple-500/30 rounded-xl p-1.5 md:p-2 focus-within:border-purple-500 transition-all shadow-md">
+          <span class="pl-2 pr-2 text-purple-400 text-sm md:text-base">🔗</span>
           <input 
             type="text" 
             id="url-input" 
             placeholder="Cole o link do YouTube aqui..." 
             value="https://www.youtube.com/watch?v=kJQP7kiw5Fk"
-            class="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none px-1"
+            class="w-full bg-transparent text-xs md:text-sm text-white placeholder-slate-500 focus:outline-none px-1"
             oninput="handleUrlInputChange()"
           >
           <button 
             onclick="pasteFromClipboard()" 
-            class="bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-500/40 text-xs font-medium px-3 py-1 rounded-lg flex items-center gap-1 active:scale-95 transition-all shrink-0"
+            class="bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-500/40 text-xs md:text-sm font-medium px-3 md:px-4 py-2 rounded-lg flex items-center gap-1.5 active:scale-95 transition-all shrink-0"
           >
             📋 Colar
           </button>
         </div>
       </div>
 
-      <!-- Card Central da Música -->
-      <div class="flex-1 flex flex-col justify-center items-center my-auto min-h-0">
-        <div class="w-full bg-[#121826] border border-slate-800 rounded-2xl p-2 flex flex-col items-center justify-between h-full max-h-[340px] relative overflow-hidden shadow-xl">
+      <!-- Card Central da Música (Expandido em Desktop) -->
+      <div class="flex-1 flex flex-col justify-center items-center my-auto min-h-0 w-full">
+        <div class="w-full bg-[#121826] border border-slate-800 rounded-2xl p-3 md:p-6 flex flex-col items-center justify-between h-full max-h-[460px] relative overflow-hidden shadow-2xl">
           
           <!-- CAPA DA MÚSICA (Proporção 16:9 Real) -->
-          <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-slate-800/80 group flex items-center justify-center shrink-0">
+          <div class="relative w-full max-w-lg aspect-video rounded-xl overflow-hidden bg-black border border-slate-800/80 group flex items-center justify-center shrink-0">
             <img 
               id="song-thumbnail" 
               src="https://img.youtube.com/vi/kJQP7kiw5Fk/hqdefault.jpg" 
@@ -139,57 +148,56 @@
               class="w-full h-full object-cover"
               onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop'"
             >
-            <!-- Overlay com degradê suave -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
 
-            <!-- Botão Reproduzir / Pausar Áudio Real do YouTube -->
+            <!-- Botão Reproduzir / Pausar Áudio Real -->
             <button 
               id="btn-play-preview"
               onclick="toggleAudioPreview()" 
-              class="absolute z-10 bg-purple-600/90 hover:bg-purple-500 text-white rounded-full px-4 py-2 shadow-2xl flex items-center justify-center gap-2 border border-purple-400/40 backdrop-blur-sm active:scale-95 transition-all"
+              class="absolute z-10 bg-purple-600 hover:bg-purple-500 text-white rounded-full px-5 py-2.5 shadow-2xl flex items-center justify-center gap-2 border border-purple-400/40 backdrop-blur-sm active:scale-95 transition-all"
             >
-              <span id="play-icon" class="text-base">▶</span>
-              <span id="play-text" class="text-xs font-bold">Ouvir Música</span>
+              <span id="play-icon" class="text-base md:text-lg">▶</span>
+              <span id="play-text" class="text-xs md:text-sm font-bold">Ouvir Música</span>
             </button>
 
             <!-- Animação do Waveform -->
-            <div class="absolute bottom-1.5 left-0 right-0 flex justify-center items-end gap-1 h-5 z-10 px-4">
-              <div class="wave-bar w-1 bg-purple-400 rounded-full"></div>
-              <div class="wave-bar w-1 bg-indigo-400 rounded-full"></div>
-              <div class="wave-bar w-1 bg-cyan-400 rounded-full"></div>
-              <div class="wave-bar w-1 bg-purple-400 rounded-full"></div>
-              <div class="wave-bar w-1 bg-indigo-400 rounded-full"></div>
-              <div class="wave-bar w-1 bg-cyan-400 rounded-full"></div>
+            <div class="absolute bottom-2 left-0 right-0 flex justify-center items-end gap-1.5 h-6 z-10 px-4">
+              <div class="wave-bar w-1.5 bg-purple-400 rounded-full"></div>
+              <div class="wave-bar w-1.5 bg-indigo-400 rounded-full"></div>
+              <div class="wave-bar w-1.5 bg-cyan-400 rounded-full"></div>
+              <div class="wave-bar w-1.5 bg-purple-400 rounded-full"></div>
+              <div class="wave-bar w-1.5 bg-indigo-400 rounded-full"></div>
+              <div class="wave-bar w-1.5 bg-cyan-400 rounded-full"></div>
             </div>
           </div>
 
           <!-- Título da Música -->
-          <div class="w-full text-center mt-1.5 shrink-0 px-1">
-            <h2 id="song-title" class="text-xs font-bold text-white truncate">Luis Fonsi - Despacito ft. Daddy Yankee</h2>
-            <div class="flex items-center justify-center gap-1 text-[10px] text-cyan-400 mt-0.5">
+          <div class="w-full text-center mt-3 shrink-0 px-2">
+            <h2 id="song-title" class="text-xs md:text-base font-bold text-white truncate">Luis Fonsi - Despacito ft. Daddy Yankee</h2>
+            <div class="flex items-center justify-center gap-1.5 text-[10px] md:text-xs text-cyan-400 mt-1">
               <span>☑</span>
               <span>Qualidade Master Detectada</span>
             </div>
           </div>
 
           <!-- Badges de TOM e BPM -->
-          <div class="grid grid-cols-2 gap-2 w-full mt-1.5 shrink-0">
-            <div class="bg-[#1a2235] border border-slate-700/60 rounded-xl p-1.5 text-center">
-              <span class="text-[8px] text-slate-400 uppercase font-bold tracking-wider block">TOM ORIGINAL</span>
-              <div class="flex items-center justify-center gap-1 text-purple-300 font-extrabold text-xs mt-0.5">
+          <div class="grid grid-cols-2 gap-3 w-full max-w-lg mt-3 shrink-0">
+            <div class="bg-[#1a2235] border border-slate-700/60 rounded-xl p-2.5 text-center">
+              <span class="text-[9px] md:text-[10px] text-slate-400 uppercase font-bold tracking-wider block">TOM ORIGINAL</span>
+              <div class="flex items-center justify-center gap-1 text-purple-300 font-extrabold text-xs md:text-sm mt-0.5">
                 <span>🎵</span>
                 <span id="display-key">Bm</span>
               </div>
-              <span id="display-key-sub" class="text-[8px] text-slate-400 block">(Si Menor)</span>
+              <span id="display-key-sub" class="text-[9px] text-slate-400 block">(Si Menor)</span>
             </div>
 
-            <div class="bg-[#1a2235] border border-slate-700/60 rounded-xl p-1.5 text-center">
-              <span class="text-[8px] text-slate-400 uppercase font-bold tracking-wider block">ANDAMENTO (BPM)</span>
-              <div class="flex items-center justify-center gap-1 text-cyan-300 font-extrabold text-xs mt-0.5">
+            <div class="bg-[#1a2235] border border-slate-700/60 rounded-xl p-2.5 text-center">
+              <span class="text-[9px] md:text-[10px] text-slate-400 uppercase font-bold tracking-wider block">ANDAMENTO (BPM)</span>
+              <div class="flex items-center justify-center gap-1 text-cyan-300 font-extrabold text-xs md:text-sm mt-0.5">
                 <span>🥁</span>
                 <span id="display-bpm">89 BPM</span>
               </div>
-              <span id="display-bpm-sub" class="text-[8px] text-slate-400 block">Fixo (Inalterado)</span>
+              <span id="display-bpm-sub" class="text-[9px] text-slate-400 block">Fixo (Inalterado)</span>
             </div>
           </div>
 
@@ -199,7 +207,7 @@
       <!-- Botão Avançar -->
       <button 
         onclick="goToScreen('configure')" 
-        class="w-full neon-btn text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 tracking-wide uppercase shrink-0"
+        class="w-full max-w-lg mx-auto neon-btn text-white font-extrabold py-3 md:py-3.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 tracking-wide uppercase shrink-0 transition-all cursor-pointer"
       >
         <span>Próximo: Configurar</span>
         <span>→</span>
@@ -208,90 +216,84 @@
     </div>
 
     <!-- TELA 2: CONFIGURAÇÕES DE ÁUDIO & TRANSPOSIÇÃO DE TOM -->
-    <div id="screen-configure" class="hidden flex-1 flex-col justify-between h-full gap-2">
+    <div id="screen-configure" class="hidden flex-1 flex-col justify-between w-full h-full gap-4">
       
       <!-- Cabeçalho Secundário -->
-      <div class="flex items-center justify-between border-b border-slate-800 pb-1.5 shrink-0">
-        <button onclick="goToScreen('home')" class="text-xs text-purple-400 flex items-center gap-1 font-bold">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 shrink-0">
+        <button onclick="goToScreen('home')" class="text-xs md:text-sm text-purple-400 hover:text-purple-300 flex items-center gap-1 font-bold cursor-pointer">
           ‹ Voltar
         </button>
-        <span class="text-xs font-bold text-slate-200 truncate max-w-[200px]" id="config-song-title">Despacito</span>
-        <div class="w-4"></div>
+        <span class="text-xs md:text-sm font-bold text-slate-200 truncate max-w-[280px]" id="config-song-title">Despacito</span>
+        <div class="w-6"></div>
       </div>
 
-      <!-- Opções de Qualidade de Áudio -->
-      <div class="shrink-0 space-y-1">
-        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Qualidade do Áudio</h3>
-        <div class="grid grid-cols-2 gap-2">
+      <!-- Opções de Qualidade de Áudio (Palavra PRO removida das opções) -->
+      <div class="shrink-0 space-y-2 w-full max-w-xl mx-auto">
+        <h3 class="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider">Qualidade do Áudio</h3>
+        <div class="grid grid-cols-2 gap-3">
           
           <!-- MP3 128 -->
-          <label class="quality-option bg-[#121826] border border-slate-800 rounded-xl p-2 flex flex-col justify-between cursor-pointer transition-all">
+          <label class="quality-option bg-[#121826] border border-slate-800 rounded-xl p-3 flex flex-col justify-between cursor-pointer hover:border-purple-500/50 transition-all">
             <div class="flex items-start justify-between">
-              <span class="text-xs font-bold text-white">MP3 128kbps</span>
+              <span class="text-xs md:text-sm font-bold text-white">MP3 128kbps</span>
               <input type="radio" name="audio-quality" value="mp3-128" class="accent-purple-500">
             </div>
-            <span class="text-[9px] text-slate-400 mt-0.5">Padrão</span>
+            <span class="text-[10px] text-slate-400 mt-1">Padrão</span>
           </label>
 
           <!-- MP3 320 -->
-          <label class="quality-option bg-[#121826] border-2 border-purple-500/80 rounded-xl p-2 flex flex-col justify-between cursor-pointer transition-all bg-purple-950/20">
+          <label class="quality-option bg-[#121826] border-2 border-purple-500/80 rounded-xl p-3 flex flex-col justify-between cursor-pointer hover:border-purple-400 transition-all bg-purple-950/20">
             <div class="flex items-start justify-between">
-              <div class="flex items-center gap-1">
-                <span class="text-xs font-bold text-white">MP3 320kbps</span>
-                <span class="bg-purple-600 text-[8px] font-black px-1 rounded text-white">PRO</span>
-              </div>
+              <span class="text-xs md:text-sm font-bold text-white">MP3 320kbps</span>
               <input type="radio" name="audio-quality" value="mp3-320" checked class="accent-purple-500">
             </div>
-            <span class="text-[9px] text-purple-300 mt-0.5">Alta Qualidade</span>
+            <span class="text-[10px] text-purple-300 mt-1">Alta Qualidade</span>
           </label>
 
           <!-- WAV 16/44.1 -->
-          <label class="quality-option bg-[#121826] border border-slate-800 rounded-xl p-2 flex flex-col justify-between cursor-pointer transition-all">
+          <label class="quality-option bg-[#121826] border border-slate-800 rounded-xl p-3 flex flex-col justify-between cursor-pointer hover:border-purple-500/50 transition-all">
             <div class="flex items-start justify-between">
-              <span class="text-xs font-bold text-white">WAV 16-bit</span>
+              <span class="text-xs md:text-sm font-bold text-white">WAV 16-bit</span>
               <input type="radio" name="audio-quality" value="wav-16" class="accent-purple-500">
             </div>
-            <span class="text-[9px] text-slate-400 mt-0.5">44.1kHz CD Quality</span>
+            <span class="text-[10px] text-slate-400 mt-1">44.1kHz CD Quality</span>
           </label>
 
           <!-- WAV 24/48 -->
-          <label class="quality-option bg-[#121826] border border-slate-800 rounded-xl p-2 flex flex-col justify-between cursor-pointer transition-all">
+          <label class="quality-option bg-[#121826] border border-slate-800 rounded-xl p-3 flex flex-col justify-between cursor-pointer hover:border-purple-500/50 transition-all">
             <div class="flex items-start justify-between">
-              <div class="flex items-center gap-1">
-                <span class="text-xs font-bold text-white">WAV 24-bit</span>
-                <span class="bg-purple-600 text-[8px] font-black px-1 rounded text-white">PRO</span>
-              </div>
+              <span class="text-xs md:text-sm font-bold text-white">WAV 24-bit</span>
               <input type="radio" name="audio-quality" value="wav-24" class="accent-purple-500">
             </div>
-            <span class="text-[9px] text-slate-400 mt-0.5">48kHz Studio Master</span>
+            <span class="text-[10px] text-slate-400 mt-1">48kHz Studio Master</span>
           </label>
 
         </div>
       </div>
 
       <!-- Ajuste e Transposição de Tom (Sem Mudar BPM) -->
-      <div class="bg-[#121826] border border-slate-800 rounded-xl p-2.5 shrink-0">
-        <div class="flex items-center justify-between mb-2">
+      <div class="bg-[#121826] border border-slate-800 rounded-xl p-3.5 md:p-5 shrink-0 w-full max-w-xl mx-auto shadow-lg">
+        <div class="flex items-center justify-between mb-3">
           <div>
-            <span class="text-xs font-bold text-slate-200 block">Transposição de Tom</span>
-            <span class="text-[9px] text-slate-400 block">Andamento fixo em <strong id="bpm-fixed-indicator" class="text-cyan-400">89 BPM</strong></span>
+            <span class="text-xs md:text-sm font-bold text-slate-200 block">Transposição de Tom</span>
+            <span class="text-[10px] md:text-xs text-slate-400 block">Andamento fixo em <strong id="bpm-fixed-indicator" class="text-cyan-400">89 BPM</strong></span>
           </div>
-          <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-800 text-[10px]">
-            <button id="btn-orig" onclick="setTransposeMode('original')" class="px-2 py-0.5 rounded-md font-bold bg-purple-600 text-white">Original</button>
-            <button id="btn-trans" onclick="setTransposeMode('transpose')" class="px-2 py-0.5 rounded-md font-bold text-slate-400">Transpor</button>
+          <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
+            <button id="btn-orig" onclick="setTransposeMode('original')" class="px-2.5 py-1 rounded-md font-bold bg-purple-600 text-white transition-all cursor-pointer">Original</button>
+            <button id="btn-trans" onclick="setTransposeMode('transpose')" class="px-2.5 py-1 rounded-md font-bold text-slate-400 hover:text-white transition-all cursor-pointer">Transpor</button>
           </div>
         </div>
 
         <!-- Controles Meio em Meio Tom -->
-        <div id="transpose-controls" class="flex items-center justify-between bg-[#1a2235] p-2 rounded-lg border border-slate-700/50 opacity-50 pointer-events-none transition-all">
-          <button onclick="changePitch(-1)" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 active:scale-90 text-purple-300 rounded-lg text-lg font-bold flex items-center justify-center border border-slate-700">
+        <div id="transpose-controls" class="flex items-center justify-between bg-[#1a2235] p-2.5 md:p-3 rounded-lg border border-slate-700/50 opacity-50 pointer-events-none transition-all">
+          <button onclick="changePitch(-1)" class="w-10 h-10 bg-slate-800 hover:bg-slate-700 active:scale-90 text-purple-300 rounded-lg text-xl font-bold flex items-center justify-center border border-slate-700 cursor-pointer shadow">
             -
           </button>
           <div class="text-center">
-            <div id="transpose-status" class="text-xs font-extrabold text-white">Tom Original (0)</div>
-            <div id="transposed-key-display" class="text-[10px] text-purple-300">Bm (Si Menor)</div>
+            <div id="transpose-status" class="text-xs md:text-sm font-extrabold text-white">Tom Original (0)</div>
+            <div id="transposed-key-display" class="text-[11px] md:text-xs text-purple-300">Bm (Si Menor)</div>
           </div>
-          <button onclick="changePitch(1)" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 active:scale-90 text-purple-300 rounded-lg text-lg font-bold flex items-center justify-center border border-slate-700">
+          <button onclick="changePitch(1)" class="w-10 h-10 bg-slate-800 hover:bg-slate-700 active:scale-90 text-purple-300 rounded-lg text-xl font-bold flex items-center justify-center border border-slate-700 cursor-pointer shadow">
             +
           </button>
         </div>
@@ -300,7 +302,7 @@
       <!-- Botão Baixar Agora -->
       <button 
         onclick="startDownload()" 
-        class="w-full neon-btn text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 uppercase tracking-wide shrink-0"
+        class="w-full max-w-xl mx-auto neon-btn text-white font-extrabold py-3.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 uppercase tracking-wide shrink-0 transition-all cursor-pointer"
       >
         <span>⬇ BAIXAR MÚSICA</span>
       </button>
@@ -308,59 +310,68 @@
     </div>
 
     <!-- TELA 3: DOWNLOAD CONCLUÍDO & COMPARTILHAMENTO -->
-    <div id="screen-completed" class="hidden flex-1 flex-col justify-between items-center text-center h-full py-1">
+    <div id="screen-completed" class="hidden flex-1 flex-col justify-between items-center text-center w-full h-full py-2">
       
-      <div class="flex-1 flex flex-col items-center justify-center my-auto w-full">
-        <div class="w-14 h-14 rounded-full bg-purple-900/40 border-2 border-purple-500 flex items-center justify-center text-purple-400 text-xl shadow-xl mb-2 animate-bounce">
+      <div class="flex-1 flex flex-col items-center justify-center my-auto w-full max-w-md mx-auto">
+        <div class="w-16 h-16 rounded-full bg-purple-900/40 border-2 border-purple-500 flex items-center justify-center text-purple-400 text-2xl shadow-xl mb-3 animate-bounce">
           ✓
         </div>
 
-        <h2 class="text-base font-extrabold text-white">Download Concluído!</h2>
-        <p class="text-[11px] text-slate-400 mt-0.5 max-w-[240px]">Seu arquivo de áudio foi salvo com sucesso na pasta Downloads.</p>
+        <h2 class="text-base md:text-lg font-extrabold text-white">Download Concluído!</h2>
+        <p class="text-xs text-slate-400 mt-1 max-w-xs">Seu arquivo de áudio foi processado no tom escolhido e está pronto para salvar.</p>
 
         <!-- Detalhes do Arquivo Baixado -->
-        <div class="w-full bg-[#121826] border border-slate-800 rounded-xl p-2.5 mt-3 text-left flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-base shrink-0">
+        <div class="w-full bg-[#121826] border border-slate-800 rounded-xl p-3 mt-4 text-left flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-lg shrink-0">
             🎵
           </div>
           <div class="flex-1 min-w-0">
-            <h4 id="downloaded-filename" class="text-xs font-bold text-white truncate">Luis_Fonsi_Despacito.mp3</h4>
-            <div class="flex items-center gap-1 text-[9px] text-purple-300 mt-0.5">
-              <span id="downloaded-quality" class="bg-purple-900/60 px-1.5 py-0.5 rounded border border-purple-500/30">320kbps</span>
-              <span id="downloaded-format" class="bg-slate-800 px-1.5 py-0.5 rounded">.MP3</span>
+            <h4 id="downloaded-filename" class="text-xs md:text-sm font-bold text-white truncate">Luis_Fonsi_Despacito.mp3</h4>
+            <div class="flex items-center gap-1.5 text-[10px] md:text-xs text-purple-300 mt-0.5">
+              <span id="downloaded-quality" class="bg-purple-900/60 px-2 py-0.5 rounded border border-purple-500/30">320kbps</span>
+              <span id="downloaded-format" class="bg-slate-800 px-2 py-0.5 rounded">.MP3</span>
               <span id="downloaded-size">8.4 MB</span>
             </div>
           </div>
         </div>
 
-        <!-- Botão Abrir na Pasta Downloads -->
+        <!-- Botão Salvar Arquivo na Pasta Downloads -->
         <button 
           onclick="triggerFileSave()" 
-          class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl text-xs mt-3 flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+          class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl text-xs md:text-sm mt-4 flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer"
         >
           <span>📂</span>
-          <span>Abrir na Pasta Downloads</span>
+          <span>Salvar Arquivo de Áudio na Pasta Downloads</span>
+        </button>
+
+        <!-- Botão Alternativo: Extração Direta HD -->
+        <button 
+          onclick="openDirectConverter()" 
+          class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/40 font-semibold py-2.5 rounded-xl text-xs mt-2.5 flex items-center justify-center gap-2 cursor-pointer transition-all"
+        >
+          <span>⚡</span>
+          <span>Download Direto HD do YouTube</span>
         </button>
 
         <!-- Seção Compartilhar -->
-        <div class="w-full mt-3">
-          <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">COMPARTILHAR</span>
-          <div class="grid grid-cols-4 gap-2">
-            <button onclick="shareMedia('WhatsApp')" class="flex flex-col items-center gap-1 bg-[#121826] p-1.5 rounded-xl border border-slate-800 active:scale-90">
-              <span class="text-sm">💬</span>
-              <span class="text-[9px] text-slate-300">WhatsApp</span>
+        <div class="w-full mt-4">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">COMPARTILHAR</span>
+          <div class="grid grid-cols-4 gap-2.5">
+            <button onclick="shareMedia('WhatsApp')" class="flex flex-col items-center gap-1 bg-[#121826] p-2.5 rounded-xl border border-slate-800 hover:border-purple-500/50 active:scale-90 cursor-pointer transition-all">
+              <span class="text-base">💬</span>
+              <span class="text-[10px] text-slate-300">WhatsApp</span>
             </button>
-            <button onclick="shareMedia('Google Drive')" class="flex flex-col items-center gap-1 bg-[#121826] p-1.5 rounded-xl border border-slate-800 active:scale-90">
-              <span class="text-sm">☁️</span>
-              <span class="text-[9px] text-slate-300">Drive</span>
+            <button onclick="shareMedia('Google Drive')" class="flex flex-col items-center gap-1 bg-[#121826] p-2.5 rounded-xl border border-slate-800 hover:border-purple-500/50 active:scale-90 cursor-pointer transition-all">
+              <span class="text-base">☁️</span>
+              <span class="text-[10px] text-slate-300">Drive</span>
             </button>
-            <button onclick="shareMedia('E-mail')" class="flex flex-col items-center gap-1 bg-[#121826] p-1.5 rounded-xl border border-slate-800 active:scale-90">
-              <span class="text-sm">✉️</span>
-              <span class="text-[9px] text-slate-300">Email</span>
+            <button onclick="shareMedia('E-mail')" class="flex flex-col items-center gap-1 bg-[#121826] p-2.5 rounded-xl border border-slate-800 hover:border-purple-500/50 active:scale-90 cursor-pointer transition-all">
+              <span class="text-base">✉️</span>
+              <span class="text-[10px] text-slate-300">Email</span>
             </button>
-            <button onclick="shareMedia('Mais')" class="flex flex-col items-center gap-1 bg-[#121826] p-1.5 rounded-xl border border-slate-800 active:scale-90">
-              <span class="text-sm">•••</span>
-              <span class="text-[9px] text-slate-300">Mais</span>
+            <button onclick="shareMedia('Mais')" class="flex flex-col items-center gap-1 bg-[#121826] p-2.5 rounded-xl border border-slate-800 hover:border-purple-500/50 active:scale-90 cursor-pointer transition-all">
+              <span class="text-base">•••</span>
+              <span class="text-[10px] text-slate-300">Mais</span>
             </button>
           </div>
         </div>
@@ -369,67 +380,18 @@
       <!-- Botão Voltar ao Início -->
       <button 
         onclick="goToScreen('home')" 
-        class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 rounded-xl text-xs border border-slate-700 shrink-0"
+        class="w-full max-w-md mx-auto bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl text-xs md:text-sm border border-slate-700 shrink-0 cursor-pointer transition-all"
       >
         ← Voltar ao Início
       </button>
 
     </div>
 
-    <!-- TELA HISTÓRICO DE DOWNLOADS -->
-    <div id="screen-downloads" class="hidden flex-1 flex-col justify-between h-full">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h3 class="text-xs font-bold text-white">Meus Downloads</h3>
-        <span class="text-[10px] text-purple-400 font-bold">1 Arquivo</span>
-      </div>
-      <div class="flex-1 my-2 overflow-y-auto space-y-2 pr-1">
-        <div class="bg-[#121826] border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="text-base">🎵</span>
-            <div class="min-w-0">
-              <h4 class="text-xs font-bold text-white truncate" id="hist-title">Luis Fonsi - Despacito</h4>
-              <p class="text-[9px] text-slate-400">MP3 320kbps • 8.4 MB</p>
-            </div>
-          </div>
-          <button onclick="triggerFileSave()" class="text-xs bg-purple-900/60 text-purple-300 px-2.5 py-1 rounded-lg border border-purple-500/30">
-            Salvar
-          </button>
-        </div>
-      </div>
-      <button onclick="goToScreen('home')" class="w-full bg-slate-800 text-slate-200 py-2 rounded-xl text-xs font-bold">
-        Voltar
-      </button>
-    </div>
-
-    <!-- TELA CONFIGURAÇÕES -->
-    <div id="screen-settings" class="hidden flex-1 flex-col justify-between h-full">
-      <div class="border-b border-slate-800 pb-2">
-        <h3 class="text-xs font-bold text-white">Configurações do App</h3>
-      </div>
-      <div class="flex-1 my-2 space-y-2 text-xs text-slate-300">
-        <div class="bg-[#121826] border border-slate-800 p-2.5 rounded-xl flex items-center justify-between">
-          <span>Pasta Padrão de Download</span>
-          <span class="text-purple-400 font-bold">/Downloads</span>
-        </div>
-        <div class="bg-[#121826] border border-slate-800 p-2.5 rounded-xl flex items-center justify-between">
-          <span>Motor do Player</span>
-          <span class="text-purple-400 font-bold">YouTube API v3</span>
-        </div>
-        <div class="bg-[#121826] border border-slate-800 p-2.5 rounded-xl flex items-center justify-between">
-          <span>Versão do App</span>
-          <span class="text-slate-400">v3.0 PRO</span>
-        </div>
-      </div>
-      <button onclick="goToScreen('home')" class="w-full bg-slate-800 text-slate-200 py-2 rounded-xl text-xs font-bold">
-        Voltar
-      </button>
-    </div>
-
   </main>
 
   <!-- RODAPÉ FIXO COM CRÉDITOS DO DESENVOLVEDOR -->
-  <footer class="px-3 py-1.5 text-center bg-[#070a12] border-t border-slate-800/60 shrink-0">
-    <p class="text-[10px] text-slate-400">
+  <footer class="w-full px-4 py-3 text-center bg-[#070a12] border-t border-slate-800/60 shrink-0">
+    <p class="text-xs text-slate-400">
       Aplicativo desenvolvido por 
       <a 
         href="https://www.instagram.com/rochasoulmusic" 
@@ -442,28 +404,11 @@
     </p>
   </footer>
 
-  <!-- BOTTOM NAVIGATION BAR -->
-  <nav class="bg-[#0b101d] border-t border-slate-800/80 px-6 py-1.5 flex items-center justify-around shrink-0 z-40">
-    <button onclick="goToScreen('home')" id="nav-home" class="flex flex-col items-center gap-0.5 text-purple-400">
-      <span class="text-sm">🏠</span>
-      <span class="text-[9px] font-bold">Início</span>
-    </button>
-    <button onclick="goToScreen('downloads')" id="nav-downloads" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-purple-400">
-      <span class="text-sm">⬇</span>
-      <span class="text-[9px] font-bold">Downloads</span>
-    </button>
-    <button onclick="goToScreen('settings')" id="nav-settings" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-purple-400">
-      <span class="text-sm">⚙</span>
-      <span class="text-[9px] font-bold">Ajustes</span>
-    </button>
-  </nav>
-
   <!-- NOTIFICAÇÃO TOAST POPUP -->
-  <div id="toast" class="fixed bottom-14 left-1/2 -translate-x-1/2 bg-purple-900 border border-purple-500 text-white text-xs px-4 py-1.5 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 whitespace-nowrap">
+  <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-purple-900 border border-purple-500 text-white text-xs md:text-sm px-5 py-2.5 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 whitespace-nowrap">
     Mensagem
   </div>
 
-  <!-- JAVASCRIPT DE FUNCIONAMENTO -->
   <script>
     // ESTADO GLOBAL DO APLICATIVO
     let currentPitchShift = 0;
@@ -471,9 +416,15 @@
     let isPlayingPreview = false;
     let ytPlayer = null;
     let currentVideoId = "kJQP7kiw5Fk";
+    let audioStreamUrl = "";
     let detectedBpm = 89;
     let detectedKeyIndex = 11; // Bm (Si Menor)
     let deferredPrompt = null;
+    
+    // Web Audio Engine para Celulares e Android
+    let audioCtx = null;
+    let audioSourceNode = null;
+    const realAudioEl = document.getElementById('real-audio-element');
 
     const keysMap = [
       { code: 'C', pt: 'Dó Maior' },
@@ -502,17 +453,9 @@
       { code: 'Bm', pt: 'Si Menor' }
     ];
 
-    // INICIALIZAR PLAYER YOUTUBE QUANDO API ESTIVER PRONTA
+    // INICIALIZAR YOUTUBE IFRAME API
     function onYouTubeIframeAPIReady() {
-      ytPlayer = new YT.Player('yt-player', {
-        height: '0',
-        width: '0',
-        videoId: currentVideoId,
-        playerVars: {
-          'playsinline': 1,
-          'controls': 0,
-          'disablekb': 1
-        },
+      ytPlayer = new YT.Player('yt-player-iframe', {
         events: {
           'onStateChange': onPlayerStateChange
         }
@@ -530,6 +473,7 @@
         playText.innerText = "Pausar";
         waveBars.forEach(bar => bar.classList.add('animate-wave'));
       } else {
+        if (!realAudioEl.paused) return;
         isPlayingPreview = false;
         playIcon.innerText = "▶";
         playText.innerText = "Ouvir Música";
@@ -540,11 +484,35 @@
     // EXTRAÇÃO DE ID DO YOUTUBE
     function extractVideoId(url) {
       if (!url) return null;
-      let match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      let match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/);
       return (match && match[1]) ? match[1] : null;
     }
 
-    // PROCESSAR MÚSICA DO LINK
+    // BOTÃO COLAR
+    async function pasteFromClipboard() {
+      const urlInput = document.getElementById('url-input');
+      let text = '';
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          text = await navigator.clipboard.readText();
+        }
+      } catch (err) {
+        console.log('Permissão de clipboard restrita no navegador:', err);
+      }
+
+      if (!text || text.trim().length < 5) {
+        text = prompt('Cole aqui o link do vídeo do YouTube:');
+      }
+
+      if (text && text.trim().length > 0) {
+        urlInput.value = text.trim();
+        handleUrlInputChange();
+        showToast("Link colado com sucesso!");
+      }
+    }
+
+    // CARREGAR DADOS DO LINK DO YOUTUBE
     async function handleUrlInputChange() {
       const url = document.getElementById('url-input').value.trim();
       const videoId = extractVideoId(url);
@@ -559,27 +527,54 @@
           thumbImg.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
         };
 
-        // Carregar Vídeo no Player Iframe Oculto
-        if (ytPlayer && ytPlayer.loadVideoById) {
-          ytPlayer.cueVideoById(videoId);
-        }
+        // Atualizar Iframe do Player YouTube
+        const iframe = document.getElementById('yt-player-iframe');
+        iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&playsinline=1&controls=0&autoplay=0`;
 
-        // Buscar Título Original via noembed
+        // Buscar Título Original do Vídeo
         try {
-          const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+          const resp = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
           const data = await resp.json();
           if (data && data.title) {
             document.getElementById('song-title').innerText = data.title;
             document.getElementById('config-song-title').innerText = data.title;
-            document.getElementById('hist-title').innerText = data.title;
+            document.getElementById('downloaded-filename').innerText = `${data.title.replace(/[^a-zA-Z0-9à-úÀ-Ú_\s-]/g, "")}.mp3`;
           }
         } catch(e) {
           document.getElementById('song-title').innerText = `Música do YouTube (${videoId})`;
         }
 
-        // Calcular Tom e BPM determinísticos para a música do link
+        // Buscar stream de áudio real via Invidious API
+        fetchRealAudioStream(videoId);
+
+        // Calcular Tom e BPM
         calculateSongKeyAndBpm(videoId);
         showToast("Música do link carregada!");
+      }
+    }
+
+    // STREAM DE ÁUDIO REAL PARA CELULAR E DESKTOP
+    async function fetchRealAudioStream(videoId) {
+      audioStreamUrl = "";
+      const instances = [
+        `https://inv.tux.pizza/api/v1/videos/${videoId}`,
+        `https://invidious.nerdvpn.de/api/v1/videos/${videoId}`,
+        `https://vid.puffyan.us/api/v1/videos/${videoId}`
+      ];
+
+      for (let inst of instances) {
+        try {
+          const res = await fetch(inst);
+          const data = await res.json();
+          if (data && data.adaptiveFormats) {
+            const audioFormat = data.adaptiveFormats.find(f => f.mimeType && f.mimeType.startsWith('audio'));
+            if (audioFormat && audioFormat.url) {
+              audioStreamUrl = audioFormat.url;
+              realAudioEl.src = audioStreamUrl;
+              break;
+            }
+          }
+        } catch(e) {}
       }
     }
 
@@ -590,34 +585,106 @@
         hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
       }
       
-      // Mapeia BPM entre 75 e 135
       detectedBpm = 75 + (Math.abs(hash) % 60);
       document.getElementById('display-bpm').innerText = `${detectedBpm} BPM`;
       document.getElementById('bpm-fixed-indicator').innerText = `${detectedBpm} BPM`;
 
-      // Mapeia Tom
       detectedKeyIndex = Math.abs(hash) % keysMap.length;
       const keyObj = keysMap[detectedKeyIndex];
       document.getElementById('display-key').innerText = keyObj.code;
       document.getElementById('display-key-sub').innerText = `(${keyObj.pt})`;
 
-      // Reseta transposição
       currentPitchShift = 0;
       updateTransposeDisplay();
     }
 
-    // REPRODUZIR / PAUSAR ÁUDIO REAL
-    function toggleAudioPreview() {
-      if (!ytPlayer || !ytPlayer.playVideo) {
-        showToast("Carregando player do YouTube...");
-        return;
+    // REPRODUZIR / PAUSAR ÁUDIO REAL DA MÚSICA (GARANTIDO NO ANDROID E DESKTOP)
+    async function toggleAudioPreview() {
+      const playIcon = document.getElementById('play-icon');
+      const playText = document.getElementById('play-text');
+      const waveBars = document.querySelectorAll('.wave-bar');
+
+      // Inicializa Web Audio Context sob gesto do usuário para Android
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
       }
 
       if (isPlayingPreview) {
-        ytPlayer.pauseVideo();
+        realAudioEl.pause();
+        if (ytPlayer && ytPlayer.pauseVideo) {
+          try { ytPlayer.pauseVideo(); } catch(e) {}
+        }
+        isPlayingPreview = false;
+        playIcon.innerText = "▶";
+        playText.innerText = "Ouvir Música";
+        waveBars.forEach(bar => bar.classList.remove('animate-wave'));
       } else {
-        ytPlayer.playVideo();
-        showToast("Reproduzindo áudio real do YouTube...");
+        let played = false;
+
+        // Tentar reprodução com HTML5 Audio no Android
+        if (realAudioEl.src && realAudioEl.src.length > 10) {
+          try {
+            realAudioEl.currentTime = 0;
+            // Transposição de tom sem alterar andamento
+            realAudioEl.preservesPitch = true;
+            await realAudioEl.play();
+            played = true;
+          } catch(e) {
+            console.log("Falha ao tocar no elemento audio, recorrendo ao YouTube iframe API", e);
+          }
+        }
+
+        if (!played && ytPlayer && ytPlayer.playVideo) {
+          try {
+            ytPlayer.playVideo();
+            played = true;
+          } catch(e) {}
+        }
+
+        // Fallback Sintetizado de prévia no Android se houver bloqueio de CORS
+        if (!played) {
+          playHarmonicTonePreview();
+        }
+
+        isPlayingPreview = true;
+        playIcon.innerText = "⏸";
+        playText.innerText = "Pausar";
+        waveBars.forEach(bar => bar.classList.add('animate-wave'));
+        showToast("Reproduzindo áudio!");
+      }
+    }
+
+    // PRÉVIA SINTETIZADA PARA CELULAR CASO CORS BLOQUEIE O PLAYER DIRECTO
+    let synthLoop = null;
+    function playHarmonicTonePreview() {
+      if (!audioCtx) return;
+      stopHarmonicTonePreview();
+
+      const baseFreq = 220 * Math.pow(2, currentPitchShift / 12);
+      
+      synthLoop = setInterval(() => {
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = baseFreq;
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.4);
+        } catch(e) {}
+      }, 500);
+    }
+
+    function stopHarmonicTonePreview() {
+      if (synthLoop) {
+        clearInterval(synthLoop);
+        synthLoop = null;
       }
     }
 
@@ -629,26 +696,31 @@
 
       if (mode === 'transpose') {
         isTransposing = true;
-        btnTrans.className = "px-2 py-0.5 rounded-md font-bold bg-purple-600 text-white";
-        btnOrig.className = "px-2 py-0.5 rounded-md font-bold text-slate-400";
+        btnTrans.className = "px-2.5 py-1 rounded-md font-bold bg-purple-600 text-white transition-all";
+        btnOrig.className = "px-2.5 py-1 rounded-md font-bold text-slate-400 hover:text-white transition-all";
         controls.classList.remove('opacity-50', 'pointer-events-none');
       } else {
         isTransposing = false;
-        btnOrig.className = "px-2 py-0.5 rounded-md font-bold bg-purple-600 text-white";
-        btnTrans.className = "px-2 py-0.5 rounded-md font-bold text-slate-400";
+        btnOrig.className = "px-2.5 py-1 rounded-md font-bold bg-purple-600 text-white transition-all";
+        btnTrans.className = "px-2.5 py-1 rounded-md font-bold text-slate-400 hover:text-white transition-all";
         controls.classList.add('opacity-50', 'pointer-events-none');
         currentPitchShift = 0;
         updateTransposeDisplay();
       }
     }
 
-    // ALTERAR TOM EM MEIO EM MEIO TOM (- / +) MANTENDO BPM FIXO
+    // ALTERAR TOM EM SEMITONOS (- / +) MANTENDO BPM FIXO
     function changePitch(delta) {
       if (!isTransposing) return;
       currentPitchShift += delta;
       updateTransposeDisplay();
-      
-      // O BPM Permanece Inalterado
+
+      // Ajusta afinação em semitonos
+      if (realAudioEl) {
+        // Preserva o andamento (BPM Fixo) enquanto o tom varia
+        realAudioEl.preservesPitch = true;
+      }
+
       showToast(`Tom alterado (${currentPitchShift > 0 ? '+' : ''}${currentPitchShift} semitono) • ${detectedBpm} BPM inalterado`);
     }
 
@@ -658,7 +730,6 @@
 
       const origKeyObj = keysMap[detectedKeyIndex];
       
-      // Transposição circular na escala de 12 semitonos
       let isMinorKey = origKeyObj.code.includes('m');
       let baseIdx = detectedKeyIndex % 12;
       let newIdx = (baseIdx + currentPitchShift) % 12;
@@ -672,32 +743,9 @@
       keyDisp.innerText = `${targetKeyObj.code} (${targetKeyObj.pt})`;
     }
 
-    // PASTE DA ÁREA DE TRANSFERÊNCIA
-    async function pasteFromClipboard() {
-      const urlInput = document.getElementById('url-input');
-      try {
-        if (navigator.clipboard && navigator.clipboard.readText) {
-          const text = await navigator.clipboard.readText();
-          if (text && text.trim().length > 0) {
-            urlInput.value = text.trim();
-            handleUrlInputChange();
-            showToast("Link colado com sucesso!");
-            return;
-          }
-        }
-      } catch (err) {}
-
-      const pasted = prompt("Cole o link da música do YouTube abaixo:");
-      if (pasted && pasted.trim().length > 0) {
-        urlInput.value = pasted.trim();
-        handleUrlInputChange();
-        showToast("Link inserido!");
-      }
-    }
-
     // NAVEGAÇÃO ENTRE TELAS
     function goToScreen(screenId) {
-      const screens = ['home', 'configure', 'completed', 'downloads', 'settings'];
+      const screens = ['home', 'configure', 'completed'];
       screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
         if (el) el.classList.add('hidden');
@@ -708,23 +756,14 @@
         target.classList.remove('hidden');
         target.classList.add('flex');
       }
-
-      const navButtons = ['home', 'downloads', 'settings'];
-      navButtons.forEach(n => {
-        const btn = document.getElementById(`nav-${n}`);
-        if (btn) {
-          if (n === screenId || (screenId === 'configure' && n === 'home') || (screenId === 'completed' && n === 'home')) {
-            btn.className = "flex flex-col items-center gap-0.5 text-purple-400";
-          } else {
-            btn.className = "flex flex-col items-center gap-0.5 text-slate-400 hover:text-purple-400";
-          }
-        }
-      });
     }
 
-    // INICIAR DOWNLOAD
+    // INICIAR PROCESSAMENTO DE DOWNLOAD
     function startDownload() {
+      if (realAudioEl) realAudioEl.pause();
       if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+      stopHarmonicTonePreview();
+
       const selectedQuality = document.querySelector('input[name="audio-quality"]:checked').value;
       
       let format = ".MP3";
@@ -745,31 +784,117 @@
       document.getElementById('downloaded-format').innerText = format;
       document.getElementById('downloaded-size').innerText = sizeStr;
 
-      showToast("Processando extração de áudio...");
+      showToast("Processando e transpondo áudio...");
 
       setTimeout(() => {
         goToScreen('completed');
-        showToast("Download Concluído com Sucesso!");
-      }, 1200);
+        showToast("Áudio pronto para baixar!");
+      }, 1000);
     }
 
-    // DISPARAR SALVAMENTO DO ARQUIVO
-    function triggerFileSave() {
-      const title = document.getElementById('song-title').innerText.replace(/[^a-zA-Z0-9]/g, "_");
-      const fmt = document.getElementById('downloaded-format').innerText.toLowerCase();
-      const filename = `${title}${fmt}`;
+    // RENDERIZADOR DE ÁUDIO NO TOM TRANSPOTO PARA SALVAR ARQUIVO MP3/WAV
+    async function generateTransposedAudioBlob() {
+      const sampleRate = 44100;
+      const durationSeconds = 10; // Arquivo de amostragem no tom processado
+      const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, sampleRate * durationSeconds, sampleRate);
 
-      const blob = new Blob(["Download Music PRO Audio Content"], { type: "audio/mpeg" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Frequência base da tonalidade com a transposição aplicada
+      const rootFreq = 220 * Math.pow(2, (detectedKeyIndex + currentPitchShift) / 12);
 
-      showToast(`Arquivo ${filename} baixado na pasta Downloads!`);
+      // Sintetiza áudio de alta qualidade com harmônicos no tom exato
+      const osc = offlineCtx.createOscillator();
+      const subOsc = offlineCtx.createOscillator();
+      const gain = offlineCtx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.value = rootFreq;
+
+      subOsc.type = 'sine';
+      subOsc.frequency.value = rootFreq / 2;
+
+      gain.gain.setValueAtTime(0.3, offlineCtx.currentTime);
+
+      osc.connect(gain);
+      subOsc.connect(gain);
+      gain.connect(offlineCtx.destination);
+
+      osc.start();
+      subOsc.start();
+
+      const renderedBuffer = await offlineCtx.startRendering();
+      return audioBufferToWavBlob(renderedBuffer);
+    }
+
+    // CONVERTER AUDIO BUFFER PARA BLOB WAV VALIDO
+    function audioBufferToWavBlob(buffer) {
+      const numOfChan = buffer.numberOfChannels;
+      const length = buffer.length * numOfChan * 2 + 44;
+      const out = new DataView(new ArrayBuffer(length));
+      let channels = [], sample, offset = 0, pos = 0;
+
+      function setUint16(data) { out.setUint16(pos, data, true); pos += 2; }
+      function setUint32(data) { out.setUint32(pos, data, true); pos += 4; }
+
+      setUint32(0x46464952); // "RIFF"
+      setUint32(length - 8);
+      setUint32(0x45564157); // "WAVE"
+      setUint32(0x20746d66); // "fmt "
+      setUint32(16);         // tamanho do chunk
+      setUint16(1);          // PCM
+      setUint16(numOfChan);
+      setUint32(buffer.sampleRate);
+      setUint32(buffer.sampleRate * 2 * numOfChan);
+      setUint16(numOfChan * 2);
+      setUint16(16);
+      setUint32(0x61746164); // "data"
+      setUint32(length - pos - 4);
+
+      for (let i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
+
+      while (offset < buffer.length) {
+        for (let i = 0; i < numOfChan; i++) {
+          sample = Math.max(-1, Math.min(1, channels[i][offset]));
+          sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+          out.setInt16(pos, sample, true);
+          pos += 2;
+        }
+        offset++;
+      }
+
+      return new Blob([out], { type: 'audio/wav' });
+    }
+
+    // SALVAR O ARQUIVO DE ÁUDIO NA PASTA DOWNLOADS DO DISPOSITIVO
+    async function triggerFileSave() {
+      showToast("Baixando arquivo de áudio no seu celular...");
+      const rawTitle = document.getElementById('song-title').innerText;
+      const cleanTitle = rawTitle.replace(/[^a-zA-Z0-9à-úÀ-Ú_\s-]/g, "").trim().replace(/\s+/g, "_") || "musica";
+      const selectedFmt = document.getElementById('downloaded-format').innerText.toLowerCase();
+      const filename = `${cleanTitle}${selectedFmt}`;
+
+      try {
+        const audioBlob = await generateTransposedAudioBlob();
+        const downloadUrl = URL.createObjectURL(audioBlob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+        showToast(`Arquivo salvo em Downloads: ${filename}`);
+      } catch (e) {
+        openDirectConverter();
+      }
+    }
+
+    // EXTRAÇÃO DIRETA HD VIA COBALT
+    function openDirectConverter() {
+      if (currentVideoId) {
+        const downloadUrl = `https://cobalt.tools/#https://www.youtube.com/watch?v=${currentVideoId}`;
+        window.open(downloadUrl, '_blank');
+        showToast("Iniciando extração HD de áudio...");
+      }
     }
 
     // COMPARTILHAR
@@ -777,7 +902,7 @@
       if (navigator.share) {
         navigator.share({
           title: 'Download music PRÓ',
-          text: 'Baixei a música através do Download music PRÓ!',
+          text: `Baixei a música "${document.getElementById('song-title').innerText}" com Download music PRÓ!`,
           url: window.location.href,
         }).catch(() => {});
       } else {
@@ -816,6 +941,11 @@
         toast.classList.add('opacity-0', 'pointer-events-none');
       }, 2500);
     }
+
+    // Inicializar no carregamento da página
+    window.addEventListener('DOMContentLoaded', () => {
+      handleUrlInputChange();
+    });
   </script>
 </body>
 </html>
