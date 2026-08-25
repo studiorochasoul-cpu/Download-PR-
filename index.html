@@ -4,14 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Download music PRÓ</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- YouTube IFrame Player API -->
   <script src="https://www.youtube.com/iframe_api"></script>
-  <!-- PWA Manifest Inline Data -->
-  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkRvd25sb2FkIG11c2ljIFBSw5MiLAogICJzaG9ydF9uYW1lIjogIk11c2ljIFBSw5MiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzA5MGQxNiIsCiAgInRoZW1lX2NvbG9yIjogIiMwOTBkMTYiCi99">
   
   <style>
     * {
@@ -40,7 +35,6 @@
       transform: scale(0.98);
       box-shadow: 0 2px 10px rgba(168, 85, 247, 0.3);
     }
-    /* Waveform Animation */
     @keyframes pulse-wave {
       0%, 100% { height: 3px; }
       50% { height: 18px; }
@@ -132,6 +126,7 @@
     <!-- SEÇÃO CENTRAL: GRID COM CAPA/PLAYER E CONTROLES DE ÁUDIO -->
     <div class="flex-1 flex flex-col md:flex-row items-center justify-center gap-2.5 md:gap-6 min-h-0 w-full my-auto">
       
+      <!-- CAPA DA MÚSICA COM PLAYER DE ÁUDIO REAL -->
       <div class="w-full md:w-1/2 flex flex-col items-center justify-center">
         <div class="relative w-full aspect-video max-h-[170px] md:max-h-[220px] rounded-xl overflow-hidden bg-black border border-slate-800 flex items-center justify-center shadow-lg">
           <img 
@@ -406,7 +401,6 @@
       }
     }
 
-    // BUSCAR STREAM DE ÁUDIO REAL DA MÚSICA
     async function fetchRealAudioStream(videoId) {
       audioStreamUrl = "";
       const instances = [
@@ -443,7 +437,6 @@
       updateTransposeDisplay();
     }
 
-    // REPRODUÇÃO E PRÉ-ESCUTA EM TEMPO REAL
     async function toggleAudioPreview() {
       const playIcon = document.getElementById('play-icon');
       const playText = document.getElementById('play-text');
@@ -498,7 +491,6 @@
 
     function applyPitchShiftToAudioElement() {
       if (realAudioEl) {
-        // Preserva ou ajusta a velocidade/tom
         realAudioEl.preservesPitch = false;
         const rate = Math.pow(2, currentPitchShift / 12);
         realAudioEl.playbackRate = rate;
@@ -534,7 +526,6 @@
       }
     }
 
-    // TRANSPOSIÇÃO DE TOM
     function setTransposeMode(mode) {
       const btnOrig = document.getElementById('btn-orig');
       const btnTrans = document.getElementById('btn-trans');
@@ -587,7 +578,6 @@
       keyDisp.innerText = `${targetKeyObj.code} (${targetKeyObj.pt})`;
     }
 
-    // PROCESSAMENTO DE DOWNLOAD DA MÚSICA DO LINK
     async function downloadTransposedAudio() {
       if (realAudioEl) realAudioEl.pause();
       if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
@@ -603,7 +593,6 @@
 
       showToast("Baixando arquivo de áudio da música...");
 
-      // Se temos o stream direto, baixa diretamente o arquivo real
       if (audioStreamUrl && currentPitchShift === 0) {
         try {
           const resp = await fetch(audioStreamUrl);
@@ -623,93 +612,9 @@
         }
       }
 
-      // Se houver transposição ou restrição de CORS no celular, gera o arquivo WAV transposto ou redireciona
-      try {
-        const audioBlob = await generateTransposedAudioBlob();
-        const downloadUrl = URL.createObjectURL(audioBlob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(downloadUrl);
-        showToast(`Música transposta salva em Downloads!`);
-      } catch(e) {
-        // Servidor HD alternativo com extração direta do YouTube
-        const cobaltUrl = `https://cobalt.tools/#https://www.youtube.com/watch?v=${currentVideoId}`;
-        window.open(cobaltUrl, '_blank');
-        showToast("Iniciando extração em alta definição no navegador...");
-      }
-    }
-
-    // GERADOR DE BLOB DE ÁUDIO REAL DE WAV COM PITCH SHIFT APLICADO
-    async function generateTransposedAudioBlob() {
-      const sampleRate = 44100;
-      const durationSeconds = 12;
-      const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, sampleRate * durationSeconds, sampleRate);
-
-      const rootFreq = 220 * Math.pow(2, (detectedKeyIndex + currentPitchShift) / 12);
-
-      const osc = offlineCtx.createOscillator();
-      const subOsc = offlineCtx.createOscillator();
-      const gain = offlineCtx.createGain();
-
-      osc.type = 'triangle';
-      osc.frequency.value = rootFreq;
-
-      subOsc.type = 'sine';
-      subOsc.frequency.value = rootFreq / 2;
-
-      gain.gain.setValueAtTime(0.3, offlineCtx.currentTime);
-
-      osc.connect(gain);
-      subOsc.connect(gain);
-      gain.connect(offlineCtx.destination);
-
-      osc.start();
-      subOsc.start();
-
-      const renderedBuffer = await offlineCtx.startRendering();
-      return audioBufferToWavBlob(renderedBuffer);
-    }
-
-    function audioBufferToWavBlob(buffer) {
-      const numOfChan = buffer.numberOfChannels;
-      const length = buffer.length * numOfChan * 2 + 44;
-      const out = new DataView(new ArrayBuffer(length));
-      let channels = [], sample, offset = 0, pos = 0;
-
-      function setUint16(data) { out.setUint16(pos, data, true); pos += 2; }
-      function setUint32(data) { out.setUint32(pos, data, true); pos += 4; }
-
-      setUint32(0x46464952); // "RIFF"
-      setUint32(length - 8);
-      setUint32(0x45564157); // "WAVE"
-      setUint32(0x20746d66); // "fmt "
-      setUint32(16);
-      setUint16(1);          // PCM
-      setUint16(numOfChan);
-      setUint32(buffer.sampleRate);
-      setUint32(buffer.sampleRate * 2 * numOfChan);
-      setUint16(numOfChan * 2);
-      setUint16(16);
-      setUint32(0x61746164); // "data"
-      setUint32(length - pos - 4);
-
-      for (let i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
-
-      while (offset < buffer.length) {
-        for (let i = 0; i < numOfChan; i++) {
-          sample = Math.max(-1, Math.min(1, channels[i][offset]));
-          sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
-          out.setInt16(pos, sample, true);
-          pos += 2;
-        }
-        offset++;
-      }
-
-      return new Blob([out], { type: 'audio/wav' });
+      const cobaltUrl = `https://cobalt.tools/#https://www.youtube.com/watch?v=${currentVideoId}`;
+      window.open(cobaltUrl, '_blank');
+      showToast("Iniciando extração em alta definição no navegador...");
     }
 
     // BANNER PWA
